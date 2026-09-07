@@ -1,0 +1,10 @@
+.build/
+.swiftpm/
+.DS_Store
+.env
+backend/data/
+.tools/
+.local-models/
+.runtime/
+dist/
+*.xcuserstate
