@@ -1,0 +1,72 @@
+{
+  "complete": true,
+  "summary": {
+    "samples": 6,
+    "requestFailures": 0,
+    "totalErrors": 1,
+    "totalWords": 86,
+    "wordErrorRate": 0.011627906976744186
+  },
+  "results": [
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "001_headset.wav",
+      "reference": "Please call Stella.",
+      "text": " Please call Stella.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 3,
+      "milliseconds": 3161
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "002_headset.wav",
+      "reference": "Ask her to bring these things with her from the store.",
+      "text": " Ask her to bring these things with her from the store\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 11,
+      "milliseconds": 3182
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "003_headset.wav",
+      "reference": "Six spoons of fresh snow peas, five thick slabs of blue cheese, and maybe a snack for her brother Bob.",
+      "text": " Six spoons of fresh snow peas, five thick slabs of blue cheese and maybe a snack for her brother Bob.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 20,
+      "milliseconds": 3257
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "004_headset.wav",
+      "reference": "We also need a small plastic snake and a big toy frog for the kids.",
+      "text": " We also need a small plastic snake and a big toy frog for the kids.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 15,
+      "milliseconds": 3223
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "005_headset.wav",
+      "reference": "She can scoop these things into three red bags, and we will go meet her Wednesday at the train station.",
+      "text": " She can scoop these things into three red bags and we will go meet her Wednesday at the station.\n",
+      "status": 200,
+      "wordErrors": 1,
+      "words": 20,
+      "milliseconds": 3256
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "006_headset.wav",
+      "reference": "When the sunlight strikes raindrops in the air, they act as a prism and form a rainbow.",
+      "text": " When the sunlight strikes, raindrops in the air, they act as a prism and form a rainbow.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 17,
+      "milliseconds": 3280
+    }
+  ]
+}

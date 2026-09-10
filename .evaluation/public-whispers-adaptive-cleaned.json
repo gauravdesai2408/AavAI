@@ -1,0 +1,162 @@
+{
+  "complete": true,
+  "summary": {
+    "samples": 15,
+    "words": 112,
+    "rawErrors": 10,
+    "cleanedErrors": 11,
+    "failures": 0
+  },
+  "results": [
+    {
+      "file": "s000_006.mp3",
+      "reference": "bright sunshine shimmers on the ocean",
+      "raw": "Bright sunshine shimmers on the ocean.",
+      "cleaned": "Bright sunshine shimmers on the ocean.",
+      "status": 200,
+      "words": 6,
+      "rawErrors": 0,
+      "cleanedErrors": 0
+    },
+    {
+      "file": "s000_007.mp3",
+      "reference": "nothing is as offensive as innocence",
+      "raw": "nothing's as offensive as innocence",
+      "cleaned": "nothing's as offensive as innocence",
+      "status": 200,
+      "words": 6,
+      "rawErrors": 2,
+      "cleanedErrors": 2
+    },
+    {
+      "file": "s006_003.mp3",
+      "reference": "this was easy for us",
+      "raw": "This was easy for us.",
+      "cleaned": "This was easy for us.",
+      "status": 200,
+      "words": 5,
+      "rawErrors": 0,
+      "cleanedErrors": 0
+    },
+    {
+      "file": "s006_004.mp3",
+      "reference": "jane may earn more money by working hard",
+      "raw": "Jane may earn more money by working hard.",
+      "cleaned": "Jane may earn more money by working hard.",
+      "status": 200,
+      "words": 8,
+      "rawErrors": 0,
+      "cleanedErrors": 0
+    },
+    {
+      "file": "s009_005.mp3",
+      "reference": "she is thinner than I am",
+      "raw": "She did know that I am.",
+      "cleaned": "She did know that I am.",
+      "status": 200,
+      "words": 6,
+      "rawErrors": 3,
+      "cleanedErrors": 3
+    },
+    {
+      "file": "s009_009.mp3",
+      "reference": "where were you while we were away",
+      "raw": "Where were you while you were away?",
+      "cleaned": "Where were you when you were away?",
+      "status": 200,
+      "words": 7,
+      "rawErrors": 1,
+      "cleanedErrors": 2
+    },
+    {
+      "file": "s127_009.mp3",
+      "reference": "where were you while we were away",
+      "raw": "Where were you while we were away?",
+      "cleaned": "Where were you while we were away?",
+      "status": 200,
+      "words": 7,
+      "rawErrors": 0,
+      "cleanedErrors": 0
+    },
+    {
+      "file": "s130_003.mp3",
+      "reference": "this was easy for us",
+      "raw": "This was easy for us.",
+      "cleaned": "This was easy for us.",
+      "status": 200,
+      "words": 5,
+      "rawErrors": 0,
+      "cleanedErrors": 0
+    },
+    {
+      "file": "s130_004.mp3",
+      "reference": "jane may earn more money by working hard",
+      "raw": "Jane may earn more money by working hard.",
+      "cleaned": "Jane may earn more money by working hard.",
+      "status": 200,
+      "words": 8,
+      "rawErrors": 0,
+      "cleanedErrors": 0
+    },
+    {
+      "file": "s131_009.mp3",
+      "reference": "where were you while we were away",
+      "raw": "Where were you while we were away?",
+      "cleaned": "Where were you while we were away?",
+      "status": 200,
+      "words": 7,
+      "rawErrors": 0,
+      "cleanedErrors": 0
+    },
+    {
+      "file": "speaker01_english_nonnative_effort1_10_1.mp3",
+      "reference": "for example, with more readiness and dexterity than any other.",
+      "raw": "For example, with more readiness and dexterity than any\n other.",
+      "cleaned": "For example, with more readiness and dexterity than any other.",
+      "status": 200,
+      "words": 10,
+      "rawErrors": 0,
+      "cleanedErrors": 0
+    },
+    {
+      "file": "speaker01_english_nonnative_effort1_10_2.mp3",
+      "reference": "he frequently exchanges them for cattle or for venison",
+      "raw": "He frequently exchanges them for candle or for venison.",
+      "cleaned": "He frequently exchanges them for candle or for venison.",
+      "status": 200,
+      "words": 9,
+      "rawErrors": 1,
+      "cleanedErrors": 1
+    },
+    {
+      "file": "speaker01_english_nonnative_effort1_10_10.mp3",
+      "reference": "and he becomes a sort of armourer",
+      "raw": "and he becomes a sort of armorer.",
+      "cleaned": "and he becomes a sort of armorer.",
+      "status": 200,
+      "words": 7,
+      "rawErrors": 1,
+      "cleanedErrors": 1
+    },
+    {
+      "file": "speaker01_english_nonnative_effort1_10_12.mp3",
+      "reference": "he is accustomed to be of use in this way to his neighbours",
+      "raw": "He is accustomed to be of use in this way to his neighbors.",
+      "cleaned": "He is accustomed to be of use in this way to his neighbors.",
+      "status": 200,
+      "words": 13,
+      "rawErrors": 1,
+      "cleanedErrors": 1
+    },
+    {
+      "file": "speaker01_english_nonnative_effort1_10_21.mp3",
+      "reference": "which is over and above his own consumption.",
+      "raw": "Age is over and above his own consumption.",
+      "cleaned": "Age is over and above his own consumption.",
+      "status": 200,
+      "words": 8,
+      "rawErrors": 1,
+      "cleanedErrors": 1
+    }
+  ]
+}

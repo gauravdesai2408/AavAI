@@ -1,0 +1,132 @@
+{
+  "complete": true,
+  "summary": {
+    "samples": 12,
+    "requestFailures": 0,
+    "totalErrors": 17,
+    "totalWords": 74,
+    "wordErrorRate": 0.22972972972972974
+  },
+  "results": [
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "001_headset.wav",
+      "reference": "This was easy for us.",
+      "text": " This was easy for us.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2935
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "002_headset.wav",
+      "reference": "Is this seesaw safe?",
+      "text": " Is this Cecil safe?\n",
+      "status": 200,
+      "wordErrors": 1,
+      "words": 4,
+      "milliseconds": 2952
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "003_headset.wav",
+      "reference": "Those thieves stole thirty jewels.",
+      "text": " They still use their stall 30 joules.\n",
+      "status": 200,
+      "wordErrors": 7,
+      "words": 5,
+      "milliseconds": 3127
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "004_headset.wav",
+      "reference": "Jane may earn more money by working hard.",
+      "text": " She may earn more money by working hard.\n",
+      "status": 200,
+      "wordErrors": 1,
+      "words": 8,
+      "milliseconds": 3056
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "005_headset.wav",
+      "reference": "She is thinner than I am.",
+      "text": " She is thin at an eye on.\n",
+      "status": 200,
+      "wordErrors": 5,
+      "words": 6,
+      "milliseconds": 3075
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "006_headset.wav",
+      "reference": "Bright sunshine shimmers on the ocean.",
+      "text": " Bright sunshine shimmers on the ocean.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 3086
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "007_headset.wav",
+      "reference": "Nothing is as offensive as innocence.",
+      "text": " Nothing is as offensive as innocence.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 3175
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "008_headset.wav",
+      "reference": "Why yell or worry over silly items?",
+      "text": " Why yell or worry over silly items?\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3253
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "009_headset.wav",
+      "reference": "Where were you while we were away?",
+      "text": " Where were you while we were away?\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3302
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "010_headset.wav",
+      "reference": "Are your grades higher or lower than Nancy's?",
+      "text": " Are your grades higher or lower than Nancy's?\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 8,
+      "milliseconds": 3324
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "011_headset.wav",
+      "reference": "He will allow a rare lie.",
+      "text": " He will allow the red line.\n",
+      "status": 200,
+      "wordErrors": 3,
+      "words": 6,
+      "milliseconds": 3309
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "012_headset.wav",
+      "reference": "Will Robin wear a yellow lily?",
+      "text": " Will Robin wear a yellow lily?\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 3331
+    }
+  ]
+}

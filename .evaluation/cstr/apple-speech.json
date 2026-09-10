@@ -1,0 +1,252 @@
+{
+  "complete": true,
+  "summary": {
+    "samples": 24,
+    "failures": 13,
+    "words": 136,
+    "errors": 82,
+    "wordErrorRate": 0.6029411764705882
+  },
+  "results": [
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "001_headset.wav",
+      "reference": "Please call Stella.",
+      "text": "Please call Stella",
+      "error": "",
+      "words": 3,
+      "wordErrors": 0,
+      "milliseconds": 254
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "036_headset.wav",
+      "reference": "You have to do it every night.",
+      "text": "",
+      "error": "",
+      "words": 7,
+      "wordErrors": 7,
+      "milliseconds": 262
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "071_headset.wav",
+      "reference": "Their names were not released.",
+      "text": "Their names were not released",
+      "error": "",
+      "words": 5,
+      "wordErrors": 0,
+      "milliseconds": 224
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "106_headset.wav",
+      "reference": "But experts have disputed that statistic.",
+      "text": "Put experts I've disputed that statistic",
+      "error": "",
+      "words": 6,
+      "wordErrors": 2,
+      "milliseconds": 287
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "141_headset.wav",
+      "reference": "We are taking the wrong decision.",
+      "text": "We are taking the wrong decision",
+      "error": "",
+      "words": 6,
+      "wordErrors": 0,
+      "milliseconds": 244
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "176_headset.wav",
+      "reference": "We talk about effective military action.",
+      "text": "We talk about effective military action",
+      "error": "",
+      "words": 6,
+      "wordErrors": 0,
+      "milliseconds": 262
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "211_headset.wav",
+      "reference": "They would never let him go.",
+      "text": "",
+      "error": "",
+      "words": 6,
+      "wordErrors": 6,
+      "milliseconds": 267
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "246_headset.wav",
+      "reference": "But these things are happening now.",
+      "text": "",
+      "error": "",
+      "words": 6,
+      "wordErrors": 6,
+      "milliseconds": 298
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "281_headset.wav",
+      "reference": "It was visibly on fire.",
+      "text": "",
+      "error": "",
+      "words": 5,
+      "wordErrors": 5,
+      "milliseconds": 245
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "316_headset.wav",
+      "reference": "They don't have to give us anything.",
+      "text": "",
+      "error": "",
+      "words": 7,
+      "wordErrors": 7,
+      "milliseconds": 258
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "351_headset.wav",
+      "reference": "Anything would be better than this retirement.",
+      "text": "",
+      "error": "",
+      "words": 7,
+      "wordErrors": 7,
+      "milliseconds": 299
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "386_headset.wav",
+      "reference": "That is European law.",
+      "text": "That is European law",
+      "error": "",
+      "words": 4,
+      "wordErrors": 0,
+      "milliseconds": 254
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "001_headset.wav",
+      "reference": "Please call Stella.",
+      "text": "Please call Stella",
+      "error": "",
+      "words": 3,
+      "wordErrors": 0,
+      "milliseconds": 214
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "036_headset.wav",
+      "reference": "You have to do it every night.",
+      "text": "",
+      "error": "",
+      "words": 7,
+      "wordErrors": 7,
+      "milliseconds": 242
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "071_headset.wav",
+      "reference": "Their names were not released.",
+      "text": "",
+      "error": "",
+      "words": 5,
+      "wordErrors": 5,
+      "milliseconds": 245
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "106_headset.wav",
+      "reference": "But experts have disputed that statistic.",
+      "text": "",
+      "error": "",
+      "words": 6,
+      "wordErrors": 6,
+      "milliseconds": 432
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "141_headset.wav",
+      "reference": "We are taking the wrong decision.",
+      "text": "",
+      "error": "",
+      "words": 6,
+      "wordErrors": 6,
+      "milliseconds": 242
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "176_headset.wav",
+      "reference": "We talk about effective military action.",
+      "text": "",
+      "error": "",
+      "words": 6,
+      "wordErrors": 6,
+      "milliseconds": 282
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "211_headset.wav",
+      "reference": "They would never let him go.",
+      "text": "They would never let him go",
+      "error": "",
+      "words": 6,
+      "wordErrors": 0,
+      "milliseconds": 219
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "246_headset.wav",
+      "reference": "But these things are happening now.",
+      "text": "",
+      "error": "",
+      "words": 6,
+      "wordErrors": 6,
+      "milliseconds": 275
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "281_headset.wav",
+      "reference": "It was visibly on fire.",
+      "text": "",
+      "error": "",
+      "words": 5,
+      "wordErrors": 5,
+      "milliseconds": 327
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "316_headset.wav",
+      "reference": "They don't have to give us anything.",
+      "text": "They don't have to give us anything",
+      "error": "",
+      "words": 7,
+      "wordErrors": 0,
+      "milliseconds": 220
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "351_headset.wav",
+      "reference": "Anything would be better than this retirement.",
+      "text": "Anything would be better than this retirement",
+      "error": "",
+      "words": 7,
+      "wordErrors": 0,
+      "milliseconds": 252
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "386_headset.wav",
+      "reference": "That is European law.",
+      "text": "What is European law",
+      "error": "",
+      "words": 4,
+      "wordErrors": 1,
+      "milliseconds": 215
+    }
+  ]
+}

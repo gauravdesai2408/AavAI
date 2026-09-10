@@ -24,6 +24,14 @@ final class LocalServiceManager: ObservableObject {
     static let shared = LocalServiceManager()
 
     @Published private(set) var status: LocalRuntimeStatus = .stopped
+    @Published private(set) var recognitionMode = UserDefaults.standard.string(forKey: "recognitionMode") ?? "accurate"
+
+    func setRecognitionMode(_ mode: String) async {
+        guard ["accurate", "fast"].contains(mode), mode != recognitionMode else { return }
+        recognitionMode = mode
+        UserDefaults.standard.set(mode, forKey: "recognitionMode")
+        await restart()
+    }
     private var processes: [Process] = []
     private var logHandles: [FileHandle] = []
     private var startupTask: Task<Void, Never>?
@@ -52,14 +60,33 @@ final class LocalServiceManager: ObservableObject {
                 try launch(
                     executable: bin.appending(path: "whisper-server"),
                     arguments: [
-                        "--model", models.appending(path: "ggml-small.en.bin").path,
-                        "--host", "127.0.0.1", "--port", "8080"
+                        "--model", models.appending(path: recognitionMode == "accurate" ? "ggml-large-v3-turbo-q5_0.bin" : "ggml-small.en.bin").path,
+                        "--host", "127.0.0.1", "--port", "8080", "--no-gpu"
                     ],
                     environment: ["DYLD_LIBRARY_PATH": bin.path],
                     logName: "whisper"
                 )
             }
             try await waitUntilHealthy(URL(string: "http://127.0.0.1:8080/health")!, service: "Whisper", attempts: 120)
+
+            if recognitionMode == "accurate" {
+                if !(await isHealthy(URL(string: "http://127.0.0.1:8081/health")!)) {
+                    try launch(
+                        executable: bin.appending(path: "whisper-server"),
+                        arguments: [
+                            "--model", models.appending(path: "ggml-small.en.bin").path,
+                            "--host", "127.0.0.1", "--port", "8081", "--no-gpu"
+                        ],
+                        environment: ["DYLD_LIBRARY_PATH": bin.path],
+                        logName: "whisper-fallback"
+                    )
+                }
+                try await waitUntilHealthy(
+                    URL(string: "http://127.0.0.1:8081/health")!,
+                    service: "Whisper accuracy fallback",
+                    attempts: 120
+                )
+            }
 
             if !(await isHealthy(URL(string: "http://127.0.0.1:11434/api/tags")!)) {
                 try launch(
@@ -75,10 +102,14 @@ final class LocalServiceManager: ObservableObject {
             try await waitUntilHealthy(URL(string: "http://127.0.0.1:11434/api/tags")!, service: "Ollama", attempts: 90)
 
             if !(await backendIsHealthy()) {
+                var backendEnvironment = ["AAVAI_PROVIDER": "local"]
+                if recognitionMode == "accurate" {
+                    backendEnvironment["AAVAI_WHISPER_FALLBACK_URL"] = "http://127.0.0.1:8081"
+                }
                 try launch(
                     executable: bin.appending(path: "node"),
                     arguments: [runtime.appending(path: "backend/src/server.mjs").path],
-                    environment: ["AAVAI_PROVIDER": "local"],
+                    environment: backendEnvironment,
                     logName: "backend"
                 )
             }
@@ -91,7 +122,17 @@ final class LocalServiceManager: ObservableObject {
     }
 
     func restart() async {
+        let previousProcesses = processes
         stopOwnedProcesses()
+        status = .starting
+        for _ in 0..<100 {
+            if previousProcesses.allSatisfy({ !$0.isRunning }) { break }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        guard previousProcesses.allSatisfy({ !$0.isRunning }) else {
+            status = .failed("Previous local services are still stopping. Try restarting again shortly.")
+            return
+        }
         status = .stopped
         await startIfNeeded()
     }
@@ -123,7 +164,7 @@ final class LocalServiceManager: ObservableObject {
     private func runtimeIsComplete(_ root: URL) -> Bool {
         let required = [
             "bin/whisper-server", "bin/node", "ollama/ollama", "ollama/llama-server",
-            "models/ggml-small.en.bin", "models/ollama", "backend/src/server.mjs"
+            "models/ggml-small.en.bin", "models/ggml-large-v3-turbo-q5_0.bin", "models/ollama", "backend/src/server.mjs"
         ]
         return required.allSatisfy { FileManager.default.fileExists(atPath: root.appending(path: $0).path) }
     }
@@ -166,6 +207,7 @@ final class LocalServiceManager: ObservableObject {
             return dependencies["provider"] as? String == "local"
                 && dependencies["whisper"] as? Bool != false
                 && dependencies["ollama"] as? Bool != false
+                && (recognitionMode != "accurate" || dependencies["fallbackWhisper"] as? Bool == true)
         }
         return true
     }

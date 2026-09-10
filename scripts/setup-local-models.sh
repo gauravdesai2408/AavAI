@@ -39,6 +39,11 @@ if [[ ! -f "$WHISPER_MODEL" ]]; then
   "$TOOLS_DIR/whisper.cpp/models/download-ggml-model.sh" small.en "$MODELS_DIR"
 fi
 
+if [[ ! -f "$MODELS_DIR/ggml-large-v3-turbo-q5_0.bin" ]]; then
+  echo "Downloading the accuracy speech model..."
+  "$TOOLS_DIR/whisper.cpp/models/download-ggml-model.sh" large-v3-turbo-q5_0 "$MODELS_DIR"
+fi
+
 if [[ ! -x "$TOOLS_DIR/Ollama.app/Contents/Resources/ollama" ]]; then
   echo "Downloading Ollama for macOS..."
   curl -fL https://ollama.com/download/Ollama-darwin.zip -o "$RUNTIME_DIR/Ollama-darwin.zip"

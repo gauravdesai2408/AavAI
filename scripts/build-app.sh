@@ -9,6 +9,7 @@ WHISPER_BUILD="$PROJECT_DIR/.tools/whisper.cpp/build/bin"
 OLLAMA_RESOURCES="$PROJECT_DIR/.tools/Ollama.app/Contents/Resources"
 OLLAMA_BIN="$OLLAMA_RESOURCES/ollama"
 WHISPER_MODEL="$PROJECT_DIR/.local-models/ggml-small.en.bin"
+WHISPER_ACCURATE_MODEL="$PROJECT_DIR/.local-models/ggml-large-v3-turbo-q5_0.bin"
 OLLAMA_MODELS="$PROJECT_DIR/.local-models/ollama"
 NODE_BIN="$(command -v node || true)"
 DITTO_OPTIONS=(--norsrc --noextattr --noacl --nopersistRootless)
@@ -24,7 +25,7 @@ export SWIFTPM_MODULECACHE_OVERRIDE="$BUILD_CACHE_DIR/swiftpm-module-cache"
 [[ -d "$MANIFEST_SDK" ]] || MANIFEST_SDK="$SDK"
 export SDKROOT="$MANIFEST_SDK"
 
-for required in "$WHISPER_BUILD/whisper-server" "$OLLAMA_BIN" "$WHISPER_MODEL" "$OLLAMA_MODELS"; do
+for required in "$WHISPER_BUILD/whisper-server" "$OLLAMA_BIN" "$WHISPER_MODEL" "$WHISPER_ACCURATE_MODEL" "$OLLAMA_MODELS"; do
   if [[ ! -e "$required" ]]; then
     echo "Missing local runtime component: $required"
     echo "Run scripts/setup-local-models.sh first."
@@ -56,6 +57,7 @@ ditto $DITTO_OPTIONS "$WHISPER_BUILD" "$STAGING_DIR/Contents/Resources/LocalRunt
 ditto $DITTO_OPTIONS "$OLLAMA_RESOURCES" "$STAGING_DIR/Contents/Resources/LocalRuntime/ollama"
 ditto $DITTO_OPTIONS "$NODE_BIN" "$STAGING_DIR/Contents/Resources/LocalRuntime/bin/node"
 ditto $DITTO_OPTIONS "$WHISPER_MODEL" "$STAGING_DIR/Contents/Resources/LocalRuntime/models/ggml-small.en.bin"
+ditto $DITTO_OPTIONS "$WHISPER_ACCURATE_MODEL" "$STAGING_DIR/Contents/Resources/LocalRuntime/models/ggml-large-v3-turbo-q5_0.bin"
 ditto $DITTO_OPTIONS "$OLLAMA_MODELS" "$STAGING_DIR/Contents/Resources/LocalRuntime/models/ollama"
 # Finder metadata on .DS_Store can carry flags that `ditto` cannot recreate in
 # a sandboxed build. The backend contains ordinary source files, so a plain

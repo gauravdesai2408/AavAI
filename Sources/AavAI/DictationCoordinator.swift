@@ -5,6 +5,11 @@ import Foundation
 final class DictationCoordinator: ObservableObject {
     @Published private(set) var state: DictationState = .idle
     @Published private(set) var history: [TranscriptEntry] = []
+    @Published private(set) var rawTranscript = ""
+    @Published private(set) var polishedTranscript = ""
+    @Published private(set) var isStarting = false
+    private var previewOnly = false
+    private var sessionID = UUID()
 
     private let audio: AudioCapturing
     private let transcription: TranscriptionProvider
@@ -27,58 +32,93 @@ final class DictationCoordinator: ObservableObject {
 
     func loadHistory() async { history = await historyStore.list() }
 
-    func start() async {
+    func start(previewOnly: Bool = false) async {
+        guard !isStarting else { return }
         guard state == .idle || isTerminal else { return }
         guard isServiceReady() else {
             state = .failed(.runtime("Still starting. Try again in a moment."), recoverableText: nil)
             return
         }
-        let captured = focus.capture()
+        let captured = previewOnly ? FocusSnapshot(
+            context: .init(bundleIdentifier: Bundle.main.bundleIdentifier, applicationName: "AavAI", category: .generic, nearbyText: "", isSecure: false),
+            element: nil, processIdentifier: ProcessInfo.processInfo.processIdentifier
+        ) : focus.capture()
         guard captured.processIdentifier != 0 else {
             state = .failed(.permissionDenied("Accessibility"), recoverableText: nil)
             return
         }
         guard !captured.context.isSecure else { state = .failed(.secureField, recoverableText: nil); return }
+        isStarting = true
+        defer { isStarting = false }
+        sessionID = UUID()
+        let currentSession = sessionID
         do {
+            self.previewOnly = previewOnly
+            rawTranscript = ""
+            polishedTranscript = ""
             snapshot = captured
-            try await audio.start(); state = .listening
-        } catch { state = .failed(error as? DictationFailure ?? .permissionDenied("Microphone"), recoverableText: nil) }
+            try await audio.start()
+            guard sessionID == currentSession else {
+                await audio.cancel()
+                return
+            }
+            state = .listening
+        } catch {
+            guard sessionID == currentSession else { return }
+            state = .failed(error as? DictationFailure ?? .permissionDenied("Microphone"), recoverableText: nil)
+        }
     }
 
     func finish() async {
         guard state == .listening, let snapshot else { return }
+        let currentSession = sessionID
+        let showOnly = previewOnly
         do {
             processingStartedAt = .now
             state = .finalizing
             let data = try await audio.stop()
+            guard sessionID == currentSession else { return }
             guard !data.isEmpty else { throw DictationFailure.noAudio }
             let raw = try await transcription.transcribe(audio: data, locale: "en", dictionary: dictionary.terms)
+            guard sessionID == currentSession else { return }
+            rawTranscript = raw
             state = .cleaning
             let result = try await cleanup.clean(.init(transcript: raw, context: snapshot.context, locale: "en", dictionary: dictionary.terms))
-            state = .inserting
-            let insertion = await inserter.insert(result.text, into: snapshot)
-            guard insertion.succeeded else {
-                let failure: DictationFailure = insertion.reason == "focusChanged" ? .focusChanged : .insertion(insertion.reason ?? "Unknown")
-                throw RecoverableFailure(failure: failure, text: result.text)
-            }
+            guard sessionID == currentSession else { return }
+            polishedTranscript = result.text
             let duration = processingStartedAt.map { instant in
                 let components = instant.duration(to: .now).components
                 return Int(components.seconds * 1_000 + components.attoseconds / 1_000_000_000_000_000)
             } ?? 0
             let entry = TranscriptEntry(id: UUID(), createdAt: .now, rawText: raw, cleanedText: result.text,
                                         applicationName: snapshot.context.applicationName, latencyMilliseconds: duration)
-            try await historyStore.append(entry); history = await historyStore.list(); state = .completed(result.text)
+            try await historyStore.append(entry)
+            history = await historyStore.list()
+            guard sessionID == currentSession else { return }
+            if !showOnly {
+                state = .inserting
+                let insertion = await inserter.insert(result.text, into: snapshot)
+                guard sessionID == currentSession else { return }
+                guard insertion.succeeded else {
+                    let failure: DictationFailure = insertion.reason == "focusChanged" ? .focusChanged : .insertion(insertion.reason ?? "Unknown")
+                    throw RecoverableFailure(failure: failure, text: result.text)
+                }
+            }
+            state = .completed(result.text)
         } catch let recoverable as RecoverableFailure {
+            guard sessionID == currentSession else { return }
             state = .failed(recoverable.failure, recoverableText: recoverable.text)
         } catch let failure as DictationFailure {
+            guard sessionID == currentSession else { return }
             state = .failed(failure, recoverableText: nil)
         } catch {
+            guard sessionID == currentSession else { return }
             state = .failed(.transcription(error.localizedDescription), recoverableText: nil)
         }
     }
 
-    func cancel() async { await audio.cancel(); state = .cancelled; resetAfterDelay() }
-    func reset() { state = .idle; snapshot = nil; processingStartedAt = nil }
+    func cancel() async { sessionID = UUID(); await audio.cancel(); state = .cancelled }
+    func reset() { sessionID = UUID(); state = .idle; snapshot = nil; processingStartedAt = nil }
     func deleteHistory(id: UUID) async { try? await historyStore.delete(id: id); history = await historyStore.list() }
     func deleteAllHistory() async { try? await historyStore.deleteAll(); history = [] }
 

@@ -65,7 +65,9 @@ final class MicrophoneCapture: AudioCapturing, @unchecked Sendable {
             self.lock.withLock {
                 if self.recording {
                     self.bytes.append(pcm)
-                    if rms > 0.003 { self.speechFrames += frames }
+                    // Loudness is not a speech classifier. Preserve quiet input
+                    // for recognition instead of rejecting whispers at -50 dBFS.
+                    if rms > 0.0001 { self.speechFrames += frames }
                 }
             }
         }
@@ -88,13 +90,33 @@ final class MicrophoneCapture: AudioCapturing, @unchecked Sendable {
         engine.inputNode.removeTap(onBus: 0)
         if result.3 { throw DictationFailure.audioDeviceChanged }
         if result.2 < Int(Double(result.1) * 0.08) { throw DictationFailure.noAudio }
-        return Self.wavData(pcm: result.0, sampleRate: result.1)
+        return Self.wavData(pcm: Self.normalizeQuietPCM(result.0), sampleRate: result.1)
     }
 
     func cancel() async {
         engine.stop()
         engine.inputNode.removeTap(onBus: 0)
         lock.withLock { recording = false; bytes.removeAll() }
+    }
+
+    /// Apply a single bounded gain, preserving timing and avoiding clipping.
+    /// This boosts quiet recordings; it does not distinguish speech from noise.
+    static func normalizeQuietPCM(_ pcm: Data) -> Data {
+        guard pcm.count >= 2 else { return pcm }
+        let samples: [Int16] = stride(from: 0, to: pcm.count - 1, by: 2).map { index in
+            Int16(bitPattern: UInt16(pcm[index]) | UInt16(pcm[index + 1]) << 8)
+        }
+        let peak = samples.map { abs(Double($0)) }.max() ?? 0
+        let rms = sqrt(samples.reduce(0.0) { $0 + Double($1) * Double($1) } / Double(samples.count))
+        guard rms > 3, peak > 0 else { return pcm }
+        let gain = min(12, min(1_300 / rms, 29_490 / peak))
+        guard gain > 1 else { return pcm }
+        var output = Data(capacity: pcm.count)
+        for sample in samples {
+            var amplified = Int16((Double(sample) * gain).rounded()).littleEndian
+            withUnsafeBytes(of: &amplified) { output.append(contentsOf: $0) }
+        }
+        return output
     }
 
     private static func wavData(pcm: Data, sampleRate: UInt32) -> Data {

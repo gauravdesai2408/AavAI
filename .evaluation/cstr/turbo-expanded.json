@@ -1,0 +1,492 @@
+{
+  "complete": true,
+  "summary": {
+    "samples": 48,
+    "requestFailures": 0,
+    "totalErrors": 7,
+    "totalWords": 304,
+    "wordErrorRate": 0.023026315789473683
+  },
+  "results": [
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "001_headset.wav",
+      "reference": "Please call Stella.",
+      "text": " Please call Stella.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 3,
+      "milliseconds": 2721
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "018_headset.wav",
+      "reference": "Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain.",
+      "text": " Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 16,
+      "milliseconds": 2714
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "035_headset.wav",
+      "reference": "We told them in August.",
+      "text": " We told them in August.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2692
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "052_headset.wav",
+      "reference": "We are being hijacked.",
+      "text": " We are being hijacked.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 4,
+      "milliseconds": 2694
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "069_headset.wav",
+      "reference": "You need a reason for staying.",
+      "text": " You need a reason for staying.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 2742
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "086_headset.wav",
+      "reference": "Their intentions were clear from the outset - to win.",
+      "text": " Their intentions were clear from the outset to win.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 9,
+      "milliseconds": 2811
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "103_headset.wav",
+      "reference": "They have the cash to do that.",
+      "text": " They have the cash to do that.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3148
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "120_headset.wav",
+      "reference": "Are we going to stay up?",
+      "text": " Are we going to stay up?\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 3148
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "137_headset.wav",
+      "reference": "We are all very shocked.",
+      "text": " We are all very shocked.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 3172
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "154_headset.wav",
+      "reference": "No details of the talks were given.",
+      "text": " No details of the talks were given.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3235
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "171_headset.wav",
+      "reference": "I've had a hard time, to be honest.",
+      "text": " I've had a hard time, to be honest.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 8,
+      "milliseconds": 3222
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "188_headset.wav",
+      "reference": "Well, what can you do?",
+      "text": " Well, what can you do?\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 3199
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "205_headset.wav",
+      "reference": "They just made me feel dizzy.",
+      "text": " They just made me feel dizzy.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 3222
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "222_headset.wav",
+      "reference": "It was far more important than that.",
+      "text": " It was far more important than that.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3256
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "239_headset.wav",
+      "reference": "I have not had much of him.",
+      "text": " I have not had much of him.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3241
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "256_headset.wav",
+      "reference": "You may have a short memory.",
+      "text": " You may have a short memory.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 3271
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "273_headset.wav",
+      "reference": "Shelter Scotland said it was very positive.",
+      "text": " Shelter Scotland said it was very positive.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3258
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "290_headset.wav",
+      "reference": "The song was Too Close.",
+      "text": " The song was too close.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2919
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "307_headset.wav",
+      "reference": "The next few months will tell.",
+      "text": " The next few months will tell.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 2856
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "324_headset.wav",
+      "reference": "They've got more time.",
+      "text": " They've got more time.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 4,
+      "milliseconds": 2857
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "341_headset.wav",
+      "reference": "Grammar has been completely forgotten.",
+      "text": " Grammar has been completely forgotten.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2857
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "358_headset.wav",
+      "reference": "But you've been accused of it.",
+      "text": " But you've been accused of it.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 2876
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "375_headset.wav",
+      "reference": "The whole team was rubbish.",
+      "text": " The whole team was rubbish.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2861
+    },
+    {
+      "condition": "HERALD-CLEAN",
+      "name": "392_headset.wav",
+      "reference": "I am very encouraged by this poll.",
+      "text": " I am very encouraged by this pole.\n",
+      "status": 200,
+      "wordErrors": 1,
+      "words": 7,
+      "milliseconds": 2901
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "001_headset.wav",
+      "reference": "Please call Stella.",
+      "text": " Please call Stella.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 3,
+      "milliseconds": 2865
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "018_headset.wav",
+      "reference": "Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain.",
+      "text": " Aristotle thought that the rainbow was caused by reflection of the sun's rays by the rain.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 16,
+      "milliseconds": 2914
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "035_headset.wav",
+      "reference": "We told them in August.",
+      "text": " We told them in August.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2878
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "052_headset.wav",
+      "reference": "We are being hijacked.",
+      "text": " We are being hijacked.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 4,
+      "milliseconds": 2885
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "069_headset.wav",
+      "reference": "You need a reason for staying.",
+      "text": " You need a reason for staying.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 2879
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "086_headset.wav",
+      "reference": "Their intentions were clear from the outset - to win.",
+      "text": " Their intentions were clear from the outset to win.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 9,
+      "milliseconds": 2908
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "103_headset.wav",
+      "reference": "They have the cash to do that.",
+      "text": " They have the cash to do that.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 2922
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "120_headset.wav",
+      "reference": "Are we going to stay up?",
+      "text": " Are we going to stay up?\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 2930
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "137_headset.wav",
+      "reference": "We are all very shocked.",
+      "text": " We are all very shocked.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2902
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "154_headset.wav",
+      "reference": "No details of the talks were given.",
+      "text": " No details of the talks were given.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 2906
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "171_headset.wav",
+      "reference": "I've had a hard time, to be honest.",
+      "text": " I've had a hard time to be honest.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 8,
+      "milliseconds": 2913
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "188_headset.wav",
+      "reference": "Well, what can you do?",
+      "text": " Well, what can you do?\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2909
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "205_headset.wav",
+      "reference": "They just made me feel dizzy.",
+      "text": " They just made me feel dizzy.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 2915
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "222_headset.wav",
+      "reference": "It was far more important than that.",
+      "text": " It was far more important than that.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 2914
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "239_headset.wav",
+      "reference": "I have not had much of him.",
+      "text": " I have not had much of him.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 2925
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "256_headset.wav",
+      "reference": "You may have a short memory.",
+      "text": " He may have a short memory.\n",
+      "status": 200,
+      "wordErrors": 1,
+      "words": 6,
+      "milliseconds": 2925
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "273_headset.wav",
+      "reference": "Shelter Scotland said it was very positive.",
+      "text": " Shelter Scott then said it was very positive.\n",
+      "status": 200,
+      "wordErrors": 2,
+      "words": 7,
+      "milliseconds": 2932
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "290_headset.wav",
+      "reference": "The song was Too Close.",
+      "text": " The song was too close.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2923
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "307_headset.wav",
+      "reference": "The next few months will tell.",
+      "text": " The next few months will tell.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 2933
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "324_headset.wav",
+      "reference": "They've got more time.",
+      "text": " They've got more time.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 4,
+      "milliseconds": 2927
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "341_headset.wav",
+      "reference": "Grammar has been completely forgotten.",
+      "text": " Grammar has been completely forgotten.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2930
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "358_headset.wav",
+      "reference": "But you've been accused of it.",
+      "text": " I bet you've been accused of it.\n",
+      "status": 200,
+      "wordErrors": 2,
+      "words": 6,
+      "milliseconds": 2976
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "375_headset.wav",
+      "reference": "The whole team was rubbish.",
+      "text": " The whole team was rubbish.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 5,
+      "milliseconds": 2939
+    },
+    {
+      "condition": "HERALD-NOISY",
+      "name": "392_headset.wav",
+      "reference": "I am very encouraged by this poll.",
+      "text": " I am very encouraged by this pole.\n",
+      "status": 200,
+      "wordErrors": 1,
+      "words": 7,
+      "milliseconds": 2942
+    }
+  ]
+}

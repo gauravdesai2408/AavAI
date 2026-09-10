@@ -24,7 +24,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 if ! curl -fsS --max-time 2 http://127.0.0.1:8080/health >/dev/null 2>&1; then
-  "$WHISPER_BIN" --model "$WHISPER_MODEL" --host 127.0.0.1 --port 8080 >"$RUNTIME_DIR/whisper.log" 2>&1 &
+  "$WHISPER_BIN" --model "$WHISPER_MODEL" --host 127.0.0.1 --port 8080 --no-gpu >"$RUNTIME_DIR/whisper.log" 2>&1 &
   PIDS+=($!)
 fi
 

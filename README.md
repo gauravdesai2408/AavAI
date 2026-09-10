@@ -25,6 +25,18 @@ The app is installed at `~/Applications/AavAI.app`. Its signed bundle includes t
 
 Hold **Control + Space**, speak, and release. Audio and text remain on this Mac. Logs are written under `.runtime/` and models under `.local-models/`.
 
+Inside AavAI, **Start dictation** opens a transcript dialog. Stop recording to
+see the original and polished text, then copy it. This action does not activate
+the previous external app. Click a History entry to open its full transcript.
+
+In Settings, **Speech recognition** selects Accuracy (local Whisper
+large-v3-turbo Q5) or Speed (local small.en). Switching restarts local services;
+wait for “Local AI ready” before recording. Accuracy is the default and takes
+longer. Our small English whisper evaluation showed improvements on clean
+speech and the separate noisy validation subset, but regressions on some
+sentences. It does not establish parity with Wispr Flow; see
+`.evaluation/cstr/model-comparison.md` for exact scope and results.
+
 Run all tests (including a native Swift Testing runner for Command Line Tools-only Macs):
 
 ```sh

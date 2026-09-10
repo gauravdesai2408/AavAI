@@ -8,3 +8,13 @@ backend/data/
 .runtime/
 dist/
 *.xcuserstate
+
+# Downloaded evaluation corpora; retain scripts, source notes, and result reports.
+.evaluation/**/*.tar.bz2
+.evaluation/**/*.tar.gz
+.evaluation/**/*.zip
+.evaluation/**/CSTR-NAM-TIMIT-Plus/
+
+# Generated presentation intermediates and installed JavaScript dependencies.
+.ppt-build/
+node_modules/

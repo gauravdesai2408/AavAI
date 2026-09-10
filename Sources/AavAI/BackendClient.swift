@@ -10,6 +10,7 @@ struct BackendClient: TranscriptionProvider, CleanupProviding {
         request.setValue("audio/wav", forHTTPHeaderField: "Content-Type")
         request.setValue(locale, forHTTPHeaderField: "X-Locale")
         request.setValue(dictionary.joined(separator: ","), forHTTPHeaderField: "X-Dictionary")
+        request.timeoutInterval = 35
         request.httpBody = audio
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
@@ -23,6 +24,7 @@ struct BackendClient: TranscriptionProvider, CleanupProviding {
         var request = URLRequest(url: baseURL.appending(path: "v1/cleanup"))
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 45
         request.httpBody = try JSONEncoder().encode(requestValue)
         let (data, response) = try await session.data(for: request)
         guard (response as? HTTPURLResponse)?.statusCode == 200 else {

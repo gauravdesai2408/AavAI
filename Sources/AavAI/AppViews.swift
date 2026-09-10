@@ -13,6 +13,8 @@ struct RootView: View {
     @State private var historySearch = ""
     @State private var confirmDeleteAll = false
     @State private var confirmResetLocalData = false
+    @State private var selectedTranscript: TranscriptEntry?
+    @State private var showDictation = false
 
     var body: some View {
         NavigationSplitView {
@@ -29,6 +31,12 @@ struct RootView: View {
         }
         .frame(minWidth: 820, minHeight: 560)
         .task { await coordinator.loadHistory() }
+        .sheet(item: $selectedTranscript) { entry in
+            TranscriptDetailView(entry: entry)
+        }
+        .sheet(isPresented: $showDictation) {
+            DictationDialogView().environmentObject(coordinator)
+        }
     }
 
     private var homeView: some View {
@@ -70,11 +78,14 @@ struct RootView: View {
                     .frame(maxWidth: 240)
             }
             List(filteredHistory) { entry in
-                VStack(alignment: .leading, spacing: 5) {
+                Button { selectedTranscript = entry } label: {
+                  VStack(alignment: .leading, spacing: 5) {
                     Text(entry.cleanedText).lineLimit(3)
                     Text("\(entry.applicationName ?? "Unknown app") · \(entry.createdAt.formatted()) · \(entry.latencyMilliseconds) ms")
                         .font(.caption).foregroundStyle(.secondary)
-                }.contextMenu {
+                  }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+                }.buttonStyle(.plain).contextMenu {
+                    Button("Open transcript") { selectedTranscript = entry }
                     Button("Copy") { coordinator.copyHistoryEntry(entry) }
                     Button("Insert again") { Task { await coordinator.insertHistoryEntry(entry) } }
                     Divider()
@@ -153,6 +164,16 @@ struct RootView: View {
                 Button("Delete local history", role: .destructive) { confirmDeleteAll = true }
             }
             Section("Local AI") {
+                Picker("Speech recognition", selection: Binding(
+                    get: { runtime.recognitionMode },
+                    set: { mode in Task { await runtime.setRecognitionMode(mode) } }
+                )) {
+                    Text("Accuracy — better on tested difficult whispers").tag("accurate")
+                    Text("Speed — faster results").tag("fast")
+                }
+                .disabled(runtime.status == .starting || isProcessing || coordinator.state == .listening)
+                Text("Accuracy mode takes longer. Both modes process audio on this Mac.")
+                    .font(.caption).foregroundStyle(.secondary)
                 LabeledContent("Status", value: runtime.status.label)
                 Button("Restart local services") { Task { await runtime.restart() } }
             }
@@ -207,7 +228,8 @@ struct RootView: View {
             Task { await coordinator.finish() }
         } else {
             coordinator.reset()
-            Task { await coordinator.start() }
+            showDictation = true
+            Task { await coordinator.start(previewOnly: true) }
         }
     }
     private var isProcessing: Bool {
@@ -216,7 +238,7 @@ struct RootView: View {
         default: false
         }
     }
-    private var stateText: String { switch coordinator.state { case .idle: "Ready"; case .listening: "Listening…"; case .finalizing: "Transcribing…"; case .cleaning: "Polishing…"; case .inserting: "Inserting…"; case .completed: "Inserted"; case .cancelled: "Cancelled"; case .failed(let error, _): error.message } }
+    private var stateText: String { switch coordinator.state { case .idle: "Ready"; case .listening: "Listening…"; case .finalizing: "Transcribing…"; case .cleaning: "Polishing…"; case .inserting: "Inserting…"; case .completed: "Transcript ready"; case .cancelled: "Cancelled"; case .failed(let error, _): error.message } }
     private var stateColor: Color { switch coordinator.state { case .listening: .red; case .failed: .orange; case .completed: .green; default: .blue } }
     private var filteredHistory: [TranscriptEntry] {
         let query = historySearch.trimmingCharacters(in: .whitespacesAndNewlines)

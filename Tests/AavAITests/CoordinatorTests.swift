@@ -5,6 +5,45 @@ import Testing
 @MainActor
 @Suite("Dictation coordinator")
 struct CoordinatorTests {
+    @Test func pendingMicrophoneStartCannotDuplicateOrReviveAfterCancel() async {
+        let audio = DeferredStartAudio()
+        let coordinator = DictationCoordinator(audio: audio, transcription: FakeTranscription(), cleanup: FakeCleanup(),
+            focus: FakeFocus(), inserter: FakeInserter(result: .init(method: .accessibility, succeeded: true, reason: nil, targetApplication: "Notes")),
+            history: MemoryHistory(), dictionary: DictionaryStore(defaults: UserDefaults(suiteName: UUID().uuidString)!))
+        let pending = Task { await coordinator.start(previewOnly: true) }
+        await audio.waitForStart()
+        await coordinator.start(previewOnly: true)
+        #expect(await audio.startCount == 1)
+        await coordinator.cancel()
+        await audio.releaseStart()
+        await pending.value
+        #expect(coordinator.state == .cancelled)
+        #expect(await audio.isRecording == false)
+    }
+    @Test func quietAudioGainPreservesSilenceAndAvoidsClipping() {
+        let silence = Data(repeating: 0, count: 100)
+        #expect(MicrophoneCapture.normalizeQuietPCM(silence) == silence)
+        let quiet = Data([20, 0, 236, 255]) // +20, -20
+        #expect(MicrophoneCapture.normalizeQuietPCM(quiet) == Data([240, 0, 16, 255]))
+        let loud = Data([255, 127, 0, 128])
+        #expect(MicrophoneCapture.normalizeQuietPCM(loud) == loud)
+    }
+
+    @Test func previewDictationKeepsTextInsideApp() async {
+        let history = MemoryHistory()
+        let inserter = FakeInserter(result: .init(method: .accessibility, succeeded: true, reason: nil, targetApplication: "TextEdit"))
+        let coordinator = DictationCoordinator(audio: FakeAudio(), transcription: FakeTranscription(), cleanup: FakeCleanup(),
+            focus: FakeSecureFocus(), inserter: inserter, history: history,
+            dictionary: DictionaryStore(defaults: UserDefaults(suiteName: UUID().uuidString)!))
+        await coordinator.start(previewOnly: true)
+        await coordinator.finish()
+        #expect(coordinator.state == .completed("Hello world."))
+        #expect(coordinator.rawTranscript == "um hello world")
+        #expect(coordinator.polishedTranscript == "Hello world.")
+        #expect(inserter.values.isEmpty)
+        #expect(await history.list().first?.applicationName == "AavAI")
+    }
+
     @Test func successfulSessionPersistsAndInserts() async {
         let history = MemoryHistory()
         let dictionary = DictionaryStore(defaults: UserDefaults(suiteName: UUID().uuidString)!)
@@ -99,6 +138,42 @@ struct CoordinatorTests {
         #expect(await reopened.list() == [entry])
         try? FileManager.default.removeItem(at: file)
     }
+
+    @Test func historyKeyLookupDoesNotBlockStoreInitialization() async {
+        let gate = DispatchSemaphore(value: 0)
+        let file = FileManager.default.temporaryDirectory.appending(path: "aavai-history-async-\(UUID().uuidString)")
+        let store = JSONHistoryStore(fileURL: file, keyLoader: {
+            gate.wait()
+            return Data(repeating: 9, count: 32)
+        })
+        gate.signal()
+        #expect(await store.list().isEmpty)
+        try? FileManager.default.removeItem(at: file)
+    }
+}
+
+actor DeferredStartAudio: AudioCapturing {
+    var startCount = 0
+    var isRecording = false
+    private var pending: CheckedContinuation<Void, Never>?
+    private var started: CheckedContinuation<Void, Never>?
+    func waitForStart() async {
+        if startCount > 0 { return }
+        await withCheckedContinuation { started = $0 }
+    }
+    func start() async throws {
+        startCount += 1
+        if startCount == 1 {
+            await withCheckedContinuation { continuation in
+                pending = continuation
+                started?.resume(); started = nil
+            }
+        }
+        isRecording = true
+    }
+    func releaseStart() { pending?.resume(); pending = nil }
+    func stop() async throws -> Data { isRecording = false; return Data([1]) }
+    func cancel() async { isRecording = false }
 }
 
 final class FakeAudio: AudioCapturing, @unchecked Sendable {

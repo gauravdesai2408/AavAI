@@ -4,32 +4,50 @@ import Security
 
 actor JSONHistoryStore: HistoryStoring {
     private let fileURL: URL
-    private let encryptionKey: SymmetricKey?
-    private var entries: [TranscriptEntry]
+    private var encryptionKey: SymmetricKey?
+    private var entries: [TranscriptEntry] = []
+    private var hasLoaded = false
+    private let initialLoad: Task<InitialState, Never>
     private static let magic = Data("AAVAI-HISTORY-1\n".utf8)
 
-    init(fileURL: URL? = nil, keyData: Data? = nil) {
+    init(fileURL: URL? = nil, keyData: Data? = nil, keyLoader: (@Sendable () -> Data?)? = nil) {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
             .appending(path: "AavAI", directoryHint: .isDirectory)
-        self.fileURL = fileURL ?? base.appending(path: "history.json")
-        self.encryptionKey = (keyData ?? Self.loadOrCreateKey()).map(SymmetricKey.init(data:))
-        let stored = try? Data(contentsOf: self.fileURL)
-        if let stored, stored.starts(with: Self.magic), let encryptionKey,
-           let clear = try? AES.GCM.open(AES.GCM.SealedBox(combined: stored.dropFirst(Self.magic.count)), using: encryptionKey) {
-            self.entries = (try? JSONDecoder().decode([TranscriptEntry].self, from: clear)) ?? []
-        } else {
-            self.entries = stored.flatMap { try? JSONDecoder().decode([TranscriptEntry].self, from: $0) } ?? []
-            if stored != nil, let encryptionKey,
-               let migrated = try? Self.encryptedData(entries: self.entries, key: encryptionKey) {
-                try? migrated.write(to: self.fileURL, options: [.atomic, .completeFileProtection])
+        let resolvedFileURL = fileURL ?? base.appending(path: "history.json")
+        self.fileURL = resolvedFileURL
+        self.encryptionKey = nil
+        let loadKey = keyLoader ?? { Self.loadOrCreateKey() }
+        self.initialLoad = Task.detached(priority: .userInitiated) {
+            let loadedKeyData = keyData ?? loadKey()
+            let key = loadedKeyData.map(SymmetricKey.init(data:))
+            let stored = try? Data(contentsOf: resolvedFileURL)
+            let loadedEntries: [TranscriptEntry]
+            if let stored, stored.starts(with: Self.magic), let key,
+               let clear = try? AES.GCM.open(AES.GCM.SealedBox(combined: stored.dropFirst(Self.magic.count)), using: key) {
+                loadedEntries = (try? JSONDecoder().decode([TranscriptEntry].self, from: clear)) ?? []
+            } else {
+                loadedEntries = stored.flatMap { try? JSONDecoder().decode([TranscriptEntry].self, from: $0) } ?? []
+                if stored != nil, let key,
+                   let migrated = try? Self.encryptedData(entries: loadedEntries, key: key) {
+                    try? migrated.write(to: resolvedFileURL, options: [.atomic, .completeFileProtection])
+                }
             }
+            return InitialState(keyData: loadedKeyData, entries: loadedEntries)
         }
     }
 
-    func list() -> [TranscriptEntry] { entries.sorted { $0.createdAt > $1.createdAt } }
-    func append(_ entry: TranscriptEntry) throws { entries.append(entry); try persist() }
-    func delete(id: UUID) throws { entries.removeAll { $0.id == id }; try persist() }
-    func deleteAll() throws { entries.removeAll(); try persist() }
+    func list() async -> [TranscriptEntry] { await ensureLoaded(); return entries.sorted { $0.createdAt > $1.createdAt } }
+    func append(_ entry: TranscriptEntry) async throws { await ensureLoaded(); entries.append(entry); try persist() }
+    func delete(id: UUID) async throws { await ensureLoaded(); entries.removeAll { $0.id == id }; try persist() }
+    func deleteAll() async throws { await ensureLoaded(); entries.removeAll(); try persist() }
+
+    private func ensureLoaded() async {
+        guard !hasLoaded else { return }
+        let state = await initialLoad.value
+        encryptionKey = state.keyData.map(SymmetricKey.init(data:))
+        entries = state.entries
+        hasLoaded = true
+    }
 
     private func persist() throws {
         try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -72,6 +90,11 @@ actor JSONHistoryStore: HistoryStoring {
         let added = SecItemAdd(add as CFDictionary, nil)
         return added == errSecSuccess || added == errSecDuplicateItem ? data : nil
     }
+}
+
+private struct InitialState: Sendable {
+    let keyData: Data?
+    let entries: [TranscriptEntry]
 }
 
 private enum HistoryStoreError: Error { case keyUnavailable, encryptionFailed }

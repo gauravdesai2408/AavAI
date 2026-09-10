@@ -1,0 +1,132 @@
+{
+  "complete": true,
+  "summary": {
+    "samples": 12,
+    "requestFailures": 0,
+    "totalErrors": 15,
+    "totalWords": 88,
+    "wordErrorRate": 0.17045454545454544
+  },
+  "results": [
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "101_headset.wav",
+      "reference": "Project development was proceeding too slowly.",
+      "text": " Project development was proceeding too slowly.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 6,
+      "milliseconds": 2994
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "102_headset.wav",
+      "reference": "Kindergarten children decorate their classrooms for all holidays.",
+      "text": " Kindergards and children decorates their classrooms for more holidays.\n",
+      "status": 200,
+      "wordErrors": 4,
+      "words": 8,
+      "milliseconds": 3019
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "103_headset.wav",
+      "reference": "Special task forces rescue hostages from kidnappers.",
+      "text": " Special task forces rescue hostages from kidnappers.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3149
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "104_headset.wav",
+      "reference": "Call an ambulance for medical assistance.",
+      "text": " Cool and options for medical assistance.\n",
+      "status": 200,
+      "wordErrors": 3,
+      "words": 6,
+      "milliseconds": 3164
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "105_headset.wav",
+      "reference": "He stole a dime from a beggar.",
+      "text": " He stole a dime from Rebecca.\n",
+      "status": 200,
+      "wordErrors": 2,
+      "words": 7,
+      "milliseconds": 3182
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "106_headset.wav",
+      "reference": "Few people live to be a hundred.",
+      "text": " Few people live to be a hundred.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3198
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "107_headset.wav",
+      "reference": "You must explicitly delete files.",
+      "text": " Just explicitly delete files.\n",
+      "status": 200,
+      "wordErrors": 2,
+      "words": 5,
+      "milliseconds": 3232
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "108_headset.wav",
+      "reference": "A huge tapestry hung in her hallway.",
+      "text": " A huge tapestry hung in the way.\n",
+      "status": 200,
+      "wordErrors": 2,
+      "words": 7,
+      "milliseconds": 3288
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "109_headset.wav",
+      "reference": "Birthday parties have cupcakes and ice cream.",
+      "text": " Birthday parties have cupcakes and ice cream.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 7,
+      "milliseconds": 3255
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "110_headset.wav",
+      "reference": "His scalp was blistered from today's hot sun.",
+      "text": " His scalp was blistered from today's hot sun.\n",
+      "status": 200,
+      "wordErrors": 0,
+      "words": 8,
+      "milliseconds": 3264
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "111_headset.wav",
+      "reference": "She slipped and sprained her ankle on the steep slope.",
+      "text": " She snipped and sprained her ankle on the steep slope.\n",
+      "status": 200,
+      "wordErrors": 1,
+      "words": 10,
+      "milliseconds": 3274
+    },
+    {
+      "condition": "TIMIT-NOISY",
+      "name": "112_headset.wav",
+      "reference": "The best way to learn is to solve extra problems.",
+      "text": " The best way to learn is to solve the extra problems.\n",
+      "status": 200,
+      "wordErrors": 1,
+      "words": 10,
+      "milliseconds": 3289
+    }
+  ]
+}
