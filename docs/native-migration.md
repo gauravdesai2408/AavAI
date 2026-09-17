@@ -49,6 +49,8 @@ application; system asset deletion is not implemented.
 
 ## Outstanding gates (not implemented or not verified)
 
+- EU privacy/security readiness: see [EU requirements and release blockers](eu-readiness.md).
+
 - Live PCM capture/incremental recognition, overlap reconciliation, preroll.
 - WhisperKit pinning, license review, verified resumable model downloads.
 - Native memory-pressure/idle policy and Foundation Models evaluation.
