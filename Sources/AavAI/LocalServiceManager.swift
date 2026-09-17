@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import AavAICore
 
 enum LocalRuntimeStatus: Equatable, Sendable {
     case stopped
@@ -38,6 +39,16 @@ final class LocalServiceManager: ObservableObject {
 
     func startIfNeeded() async {
         if status == .ready || status == .starting { return }
+        if InferenceSelection.usesNativeApple {
+            if #available(macOS 26, *) {
+                status = .starting
+                let availability = await AppleFileRecognizer().availability(locale: "en-US")
+                status = availability == "installed" ? .ready
+                    : .failed("Native speech: \(availability). Use the menu to install Apple English speech assets.")
+            }
+            else { status = .failed("Native Apple recognition requires macOS 26.") }
+            return
+        }
         if await backendIsHealthy() {
             status = .starting
             do {
@@ -119,6 +130,16 @@ final class LocalServiceManager: ObservableObject {
         } catch {
             status = .failed(error.localizedDescription)
         }
+    }
+
+    func installNativeAssets() async {
+        guard InferenceSelection.usesNativeApple else { return }
+        guard #available(macOS 26, *) else { return }
+        status = .starting
+        do {
+            try await AppleFileRecognizer().installAssets(locale: "en-US")
+            status = .ready
+        } catch { status = .failed(error.localizedDescription) }
     }
 
     func restart() async {

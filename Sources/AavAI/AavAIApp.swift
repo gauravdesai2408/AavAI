@@ -25,7 +25,9 @@ struct AavAIApp: App {
         _settings = StateObject(wrappedValue: settings)
         _audioDevices = StateObject(wrappedValue: audioDevices)
         let coordinator = DictationCoordinator(
-            audio: MicrophoneCapture(), transcription: backend, cleanup: backend,
+            audio: MicrophoneCapture(),
+            transcription: InferenceSelection.usesNativeApple ? NativeTranscription() : backend,
+            cleanup: InferenceSelection.usesNativeApple ? NativeCleanup() : backend,
             focus: MacFocusReader(), inserter: MacTextInserter(), history: JSONHistoryStore(), dictionary: dictionary,
             isServiceReady: { runtime.status.isReady }
         )
@@ -65,6 +67,12 @@ private struct AavAIMenuBarView: View {
 
     var body: some View {
         Text(runtime.status.label)
+        if InferenceSelection.usesNativeApple {
+            Button("Download Apple English Speech Assets…") {
+                Task { await runtime.installNativeAssets() }
+            }
+            .disabled(runtime.status == .starting)
+        }
         Button("Open AavAI") {
             openWindow(id: "main")
             NSApp.activate(ignoringOtherApps: true)

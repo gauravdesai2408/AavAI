@@ -9,6 +9,7 @@ final class DictationCoordinator: ObservableObject {
     @Published private(set) var polishedTranscript = ""
     @Published private(set) var isStarting = false
     private var previewOnly = false
+    private var isCancelling = false
     private var sessionID = UUID()
 
     private let audio: AudioCapturing
@@ -33,7 +34,7 @@ final class DictationCoordinator: ObservableObject {
     func loadHistory() async { history = await historyStore.list() }
 
     func start(previewOnly: Bool = false) async {
-        guard !isStarting else { return }
+        guard !isStarting, !isCancelling else { return }
         guard state == .idle || isTerminal else { return }
         guard isServiceReady() else {
             state = .failed(.runtime("Still starting. Try again in a moment."), recoverableText: nil)
@@ -117,7 +118,15 @@ final class DictationCoordinator: ObservableObject {
         }
     }
 
-    func cancel() async { sessionID = UUID(); await audio.cancel(); state = .cancelled }
+    func cancel() async {
+        guard !isCancelling else { return }
+        isCancelling = true
+        defer { isCancelling = false }
+        sessionID = UUID()
+        state = .cancelled
+        await audio.cancel()
+        await transcription.cancel()
+    }
     func reset() { sessionID = UUID(); state = .idle; snapshot = nil; processingStartedAt = nil }
     func deleteHistory(id: UUID) async { try? await historyStore.delete(id: id); history = await historyStore.list() }
     func deleteAllHistory() async { try? await historyStore.deleteAll(); history = [] }

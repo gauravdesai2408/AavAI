@@ -5,6 +5,24 @@ import Testing
 @MainActor
 @Suite("Dictation coordinator")
 struct CoordinatorTests {
+    @Test func cancellationStopsProviderAndRejectsItsLateResult() async {
+        let provider = DeferredTranscription()
+        let inserter = FakeInserter(result: .init(method: .accessibility, succeeded: true, reason: nil, targetApplication: "Notes"))
+        let history = MemoryHistory()
+        let coordinator = DictationCoordinator(audio: FakeAudio(), transcription: provider, cleanup: FakeCleanup(),
+            focus: FakeFocus(), inserter: inserter, history: history,
+            dictionary: DictionaryStore(defaults: UserDefaults(suiteName: UUID().uuidString)!))
+        await coordinator.start()
+        let pending = Task { await coordinator.finish() }
+        await provider.waitForStart()
+        await coordinator.cancel()
+        await provider.release()
+        await pending.value
+        #expect(await provider.cancelled)
+        #expect(coordinator.state == .cancelled)
+        #expect(inserter.values.isEmpty)
+        #expect(await history.list().isEmpty)
+    }
     @Test func pendingMicrophoneStartCannotDuplicateOrReviveAfterCancel() async {
         let audio = DeferredStartAudio()
         let coordinator = DictationCoordinator(audio: audio, transcription: FakeTranscription(), cleanup: FakeCleanup(),
@@ -150,6 +168,24 @@ struct CoordinatorTests {
         #expect(await store.list().isEmpty)
         try? FileManager.default.removeItem(at: file)
     }
+}
+
+actor DeferredTranscription: TranscriptionProvider {
+    var cancelled = false
+    private var pending: CheckedContinuation<String, Never>?
+    private var waiter: CheckedContinuation<Void, Never>?
+    func transcribe(audio: Data, locale: String, dictionary: [String]) async throws -> String {
+        await withCheckedContinuation { continuation in
+            pending = continuation
+            waiter?.resume(); waiter = nil
+        }
+    }
+    func waitForStart() async {
+        if pending != nil { return }
+        await withCheckedContinuation { waiter = $0 }
+    }
+    func cancel() async { cancelled = true }
+    func release() { pending?.resume(returning: "late result"); pending = nil }
 }
 
 actor DeferredStartAudio: AudioCapturing {

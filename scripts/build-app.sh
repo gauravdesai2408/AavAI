@@ -4,6 +4,13 @@ set -euo pipefail
 PROJECT_DIR="${0:A:h:h}"
 DIST_DIR="$PROJECT_DIR/dist"
 APP_DIR="$DIST_DIR/AavAI.app"
+BUILD_FLAVOR="${AAVAI_BUILD_FLAVOR:-baseline}"
+if [[ "$BUILD_FLAVOR" == "native-apple" ]]; then
+  APP_DIR="$DIST_DIR/AavAI-Native.app"
+elif [[ "$BUILD_FLAVOR" != "baseline" ]]; then
+  echo "Unknown AAVAI_BUILD_FLAVOR: $BUILD_FLAVOR"
+  exit 1
+fi
 RUNTIME_DIR="$APP_DIR/Contents/Resources/LocalRuntime"
 WHISPER_BUILD="$PROJECT_DIR/.tools/whisper.cpp/build/bin"
 OLLAMA_RESOURCES="$PROJECT_DIR/.tools/Ollama.app/Contents/Resources"
@@ -25,6 +32,7 @@ export SWIFTPM_MODULECACHE_OVERRIDE="$BUILD_CACHE_DIR/swiftpm-module-cache"
 [[ -d "$MANIFEST_SDK" ]] || MANIFEST_SDK="$SDK"
 export SDKROOT="$MANIFEST_SDK"
 
+if [[ "$BUILD_FLAVOR" == "baseline" ]]; then
 for required in "$WHISPER_BUILD/whisper-server" "$OLLAMA_BIN" "$WHISPER_MODEL" "$WHISPER_ACCURATE_MODEL" "$OLLAMA_MODELS"; do
   if [[ ! -e "$required" ]]; then
     echo "Missing local runtime component: $required"
@@ -36,6 +44,7 @@ if [[ -z "$NODE_BIN" || ! -x "$NODE_BIN" ]]; then
   echo "Node.js was not found. Install Node 22 or newer and rerun this script."
   exit 1
 fi
+fi
 
 cd "$PROJECT_DIR"
 swift build --disable-sandbox --sdk "$SDK" \
@@ -45,7 +54,7 @@ BIN_DIR="$(swift build --disable-sandbox --sdk "$SDK" \
   -Xswiftc -interface-compiler-version -Xswiftc "$SWIFT_INTERFACE_VERSION" \
   -c release --show-bin-path)"
 
-STAGING_DIR="$DIST_DIR/.AavAI.app.staging"
+STAGING_DIR="$DIST_DIR/.AavAI-$BUILD_FLAVOR.app.staging"
 rm -rf "$STAGING_DIR"
 mkdir -p "$STAGING_DIR/Contents/MacOS" "$STAGING_DIR/Contents/Resources/LocalRuntime/bin" "$STAGING_DIR/Contents/Resources/LocalRuntime/models" "$STAGING_DIR/Contents/Resources/LocalRuntime/ollama"
 
@@ -53,6 +62,7 @@ ditto $DITTO_OPTIONS "$BIN_DIR/AavAI" "$STAGING_DIR/Contents/MacOS/AavAI"
 ditto $DITTO_OPTIONS "$PROJECT_DIR/packaging/Info.plist" "$STAGING_DIR/Contents/Info.plist"
 print -n 'APPL????' > "$STAGING_DIR/Contents/PkgInfo"
 
+if [[ "$BUILD_FLAVOR" == "baseline" ]]; then
 ditto $DITTO_OPTIONS "$WHISPER_BUILD" "$STAGING_DIR/Contents/Resources/LocalRuntime/bin"
 ditto $DITTO_OPTIONS "$OLLAMA_RESOURCES" "$STAGING_DIR/Contents/Resources/LocalRuntime/ollama"
 ditto $DITTO_OPTIONS "$NODE_BIN" "$STAGING_DIR/Contents/Resources/LocalRuntime/bin/node"
@@ -65,6 +75,11 @@ ditto $DITTO_OPTIONS "$OLLAMA_MODELS" "$STAGING_DIR/Contents/Resources/LocalRunt
 cp -R "$PROJECT_DIR/backend" "$STAGING_DIR/Contents/Resources/LocalRuntime/backend"
 
 chmod +x "$STAGING_DIR/Contents/MacOS/AavAI" "$STAGING_DIR/Contents/Resources/LocalRuntime/bin/whisper-server" "$STAGING_DIR/Contents/Resources/LocalRuntime/bin/node" "$STAGING_DIR/Contents/Resources/LocalRuntime/ollama/ollama" "$STAGING_DIR/Contents/Resources/LocalRuntime/ollama/llama-server"
+else
+  /usr/libexec/PlistBuddy -c 'Add :AavAIEngine string apple' "$STAGING_DIR/Contents/Info.plist"
+  /usr/libexec/PlistBuddy -c 'Set :CFBundleDisplayName AavAI Native Preview' "$STAGING_DIR/Contents/Info.plist"
+  chmod +x "$STAGING_DIR/Contents/MacOS/AavAI"
+fi
 xattr -cr "$STAGING_DIR"
 # Ad-hoc signing normally makes the designated requirement equal to the current
 # binary's cdhash. That changes on every build and silently invalidates macOS

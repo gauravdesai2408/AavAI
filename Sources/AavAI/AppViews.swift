@@ -164,6 +164,13 @@ struct RootView: View {
                 Button("Delete local history", role: .destructive) { confirmDeleteAll = true }
             }
             Section("Local AI") {
+                if InferenceSelection.usesNativeApple {
+                    Text("Apple SpeechTranscriber — experimental native engine")
+                    Text("Quality is not yet validated. Uses conservative formatting and system-managed speech assets.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Button("Download Apple English Speech Assets…") { Task { await runtime.installNativeAssets() } }
+                        .disabled(runtime.status == .starting || isProcessing || coordinator.state == .listening)
+                } else {
                 Picker("Speech recognition", selection: Binding(
                     get: { runtime.recognitionMode },
                     set: { mode in Task { await runtime.setRecognitionMode(mode) } }
@@ -174,8 +181,9 @@ struct RootView: View {
                 .disabled(runtime.status == .starting || isProcessing || coordinator.state == .listening)
                 Text("Accuracy mode takes longer. Both modes process audio on this Mac.")
                     .font(.caption).foregroundStyle(.secondary)
+                }
                 LabeledContent("Status", value: runtime.status.label)
-                Button("Restart local services") { Task { await runtime.restart() } }
+                Button(InferenceSelection.usesNativeApple ? "Check native availability" : "Restart local services") { Task { await runtime.restart() } }
             }
             Section("Permissions") {
                 permissionRow("Microphone", permissions.microphone, action: permissions.openMicrophoneSettings)

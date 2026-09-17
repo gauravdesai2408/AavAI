@@ -8,7 +8,10 @@ protocol AudioCapturing: AnyObject, Sendable {
 
 protocol TranscriptionProvider: Sendable {
     func transcribe(audio: Data, locale: String, dictionary: [String]) async throws -> String
+    func cancel() async
 }
+
+extension TranscriptionProvider { func cancel() async {} }
 
 protocol CleanupProviding: Sendable {
     func clean(_ request: CleanupRequest) async throws -> CleanupResult

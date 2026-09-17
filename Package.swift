@@ -10,10 +10,14 @@ let developerLibraries = "\(developerDirectory)/Library/Developer/usr/lib"
 
 let package = Package(
     name: "AavAI",
-    platforms: [.macOS(.v14)],
-    products: [.executable(name: "AavAI", targets: ["AavAI"])],
+    platforms: [.macOS(.v14), .iOS(.v26)],
+    products: [.executable(name: "AavAI", targets: ["AavAI"]),
+               .executable(name: "aavai-native-eval", targets: ["AavAINativeEval"]),
+               .library(name: "AavAICore", targets: ["AavAICore"])],
     targets: [
-        .executableTarget(name: "AavAI"),
+        .target(name: "AavAICore"),
+        .executableTarget(name: "AavAINativeEval", dependencies: ["AavAICore"]),
+        .executableTarget(name: "AavAI", dependencies: ["AavAICore"]),
         .testTarget(
             name: "AavAITests",
             dependencies: ["AavAI"],
