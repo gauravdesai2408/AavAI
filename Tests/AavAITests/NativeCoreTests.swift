@@ -5,6 +5,17 @@ import AavAICore
 
 @Suite("Native core migration")
 struct NativeCoreTests {
+    @Test func inMemoryWAVPreservesQuietSamplesAndRejectsTruncation() throws {
+        let pcm = Data([1, 0, 255, 255, 0, 0])
+        let wav = MicrophoneCapture.wavData(pcm: pcm, sampleRate: 48_000)
+        let recording = try PCMRecording(wav: wav)
+        #expect(recording.sampleRate == 48_000)
+        #expect(recording.samples == [1 / Float(32768), -1 / Float(32768), 0])
+        #expect(throws: RecognitionError.invalidAudio) { try PCMRecording(wav: Data(wav.dropLast())) }
+        #expect(throws: RecognitionError.invalidAudio) { try PCMRecording(wav: Data()) }
+        #expect(MicrophoneCapture.containsSignal(pcm))
+        #expect(!MicrophoneCapture.containsSignal(Data(repeating: 0, count: 20)))
+    }
     @Test func formattingDoesNotDropCriticalWords() {
         for text in ["do not send 15.25 USD", "AavAI isn't ready on 2026-09-17",
                      "email user@example.com or https://example.com/a?x=1",

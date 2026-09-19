@@ -34,6 +34,13 @@ and release constraint, not a final-stage paperwork task.
 
 ## Delivery discipline
 
+Do not accumulate full application backups or redundant model-bundled builds.
+Keep one installed AavAI.app. Installation may use a transient rollback directory,
+but must remove it after success and move (not copy) the verified dist build into
+place. Do not create additional installed or preview app copies without a concrete
+testing need and an explicit cleanup plan. Preserve user history/dictionary when
+cleaning app bundles; prefer Trash for user-requested cleanup of existing copies.
+
 Preserve the working Mac baseline until native replacement gates pass. Keep model
 weights, datasets and build artifacts out of Git. Do not claim Flow parity from
 unit tests, installer size or small curated examples. See `docs/native-migration.md`

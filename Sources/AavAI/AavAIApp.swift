@@ -29,7 +29,9 @@ struct AavAIApp: App {
             transcription: InferenceSelection.usesNativeApple ? NativeTranscription() : backend,
             cleanup: InferenceSelection.usesNativeApple ? NativeCleanup() : backend,
             focus: MacFocusReader(), inserter: MacTextInserter(), history: JSONHistoryStore(), dictionary: dictionary,
-            isServiceReady: { runtime.status.isReady }
+            isServiceReady: { runtime.status.isReady },
+            shouldSaveHistory: { PrivacyPreferences.saveHistory },
+            retentionDays: { UserDefaults.standard.integer(forKey: "privacy.retentionDays") }
         )
         _coordinator = StateObject(wrappedValue: coordinator)
         // Referencing the imported C global `kAXTrustedCheckOptionPrompt` is rejected by

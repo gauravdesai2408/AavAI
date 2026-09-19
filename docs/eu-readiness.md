@@ -38,26 +38,42 @@ Do not treat every voice recording as special-category biometric identification;
 that depends on the processing purpose. Health and other sensitive content require
 separate legal analysis where the company processes it.
 
-## Observed code gaps — must be resolved or explicitly scoped before release
+## Implemented controls in source (2026-09-18; deployment and audit pending)
 
-- Native transcription writes a temporary WAV, removed on ordinary completion
-  but not reliably after crashes. Prefer memory streaming; until then implement
-  scoped crash recovery, permissions and tested retention limits.
-- History uses AES-GCM/Keychain, but dictionaryTerms remains in UserDefaults.
-  Encrypt sensitive dictionary content with reversible migration and test recovery.
-- Coordinator suppresses history deletion failures and can clear the UI despite
-  persistence failure. Report failures; verify deletion after reopening the store.
-- Review store load/key failure paths: corrupted or inaccessible encrypted data
-  must not be silently replaced with an empty store. Add failure/recovery tests.
-- History is saved automatically. Add a no-history default for new users and
-  explicit save/retention choices; do not delete existing users' records implicitly.
-- Focus capture reads field contents before any client-side bound. Disable optional
-  context by default; bound it near the cursor before passing it to an engine.
-- Clipboard restoration exists, but cannot retract data observed by another app
-  or copied through Universal Clipboard. Explain this boundary and offer strict
-  no-clipboard fallback. Never promise deletion from destination applications.
-- No demonstrated full network audit, portable export, retention expiry, or
-  comprehensive local-data deletion workflow. OS backups require separate disclosure.
+- History remains AES-GCM encrypted with the existing Keychain identity. Failed
+  loads do not overwrite unreadable archives; failed writes preserve memory state.
+- Dictionary migration encrypts terms in preferences with a separate Keychain key.
+  Authentication failure preserves encrypted and legacy bytes. Preference storage
+  durability and old-release rollback need care; see native-migration.md.
+- History-saving is opt-in. Existing records are preserved. Optional expiry
+  (7/30/90 days) requires confirmation; manual deletion reports failures.
+- Explicit local JSON export includes history/dictionary, not audio or keys.
+  It is readable plaintext; the UI warns about cloud-synced destinations.
+- Native capture no longer writes temporary WAV files. It remains buffered until
+  release; inference then consumes one-second resampled chunks, not live streaming.
+- Context is disabled by default and requested through a bounded near-cursor
+  Accessibility range when enabled. Secure and unsupported fields provide no context.
+- Insertion revalidates the focused element and secure status. Clipboard fallback
+  is optional and focus-change failures no longer automatically copy text.
+- Mac HTTP and baseline inference clients enforce loopback-only endpoints and
+  reject redirects. Cloud provider selection/code is removed in this phase.
+- Baseline logs expose only request ID/status, not raw exception messages that
+  could quote malformed dictation. A synthetic-content regression test verifies this.
+
+## Remaining privacy/security gates
+
+- Validate controls on real UI/devices, full network capture and offline runs.
+  Tests do not certify GDPR compliance or prove all OS/vendor behavior.
+- OS backups, clipboard observers, previously created temporary files and exported
+  copies are outside application deletion. Do not promise secure erasure of them.
+- Dictionary encrypted UserDefaults writes do not expose durable-write errors.
+  Strengthen persistence before a production claim of verified dictionary deletion.
+- Review local-service authentication, dependency/model licenses and security,
+  model-download integrity, signed updates, diagnostics and system asset behavior.
+- Finish privacy notices, processing-role/legal-basis assessments, vendor/transfer
+  review, research consent/provenance, DPIA/DPO screening and breach/rights procedures.
+- The currently installed baseline may predate these source changes; do not infer
+  deployment from successful tests. No additional bundled app copies are retained.
 
 ## Engineering acceptance
 

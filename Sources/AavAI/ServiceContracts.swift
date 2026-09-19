@@ -28,8 +28,17 @@ protocol TextInserting: Sendable {
 }
 
 protocol HistoryStoring: Sendable {
+    func validate() async throws
     func list() async -> [TranscriptEntry]
     func append(_ entry: TranscriptEntry) async throws
     func delete(id: UUID) async throws
     func deleteAll() async throws
+    func delete(before cutoff: Date) async throws
+}
+
+extension HistoryStoring {
+    func validate() async throws {}
+    func delete(before cutoff: Date) async throws {
+        for entry in await list() where entry.createdAt < cutoff { try await delete(id: entry.id) }
+    }
 }

@@ -9,7 +9,7 @@ final class MicrophoneCapture: AudioCapturing, @unchecked Sendable {
     private var bytes = Data()
     private var recording = false
     private var sampleRate: UInt32 = 48_000
-    private var speechFrames = 0
+    private var durationExceeded = false
     private var configurationObserver: NSObjectProtocol?
     private var deviceChanged = false
 
@@ -31,7 +31,7 @@ final class MicrophoneCapture: AudioCapturing, @unchecked Sendable {
         }
         lock.withLock {
             bytes.removeAll(keepingCapacity: true)
-            speechFrames = 0
+            durationExceeded = false
             deviceChanged = false
             recording = false
         }
@@ -49,47 +49,52 @@ final class MicrophoneCapture: AudioCapturing, @unchecked Sendable {
             if status != noErr { throw DictationFailure.transcription("The selected microphone is unavailable") }
         }
         let format = input.outputFormat(forBus: 0)
+        guard format.sampleRate.isFinite, (8_000...96_000).contains(format.sampleRate), format.channelCount > 0 else {
+            throw DictationFailure.transcription("Unsupported microphone format")
+        }
         sampleRate = UInt32(format.sampleRate)
         input.installTap(onBus: 0, bufferSize: 2048, format: format) { [weak self] buffer, _ in
             guard let self, let channel = buffer.floatChannelData?.pointee else { return }
             let frames = Int(buffer.frameLength)
             var pcm = Data(capacity: frames * 2)
-            var energy: Float = 0
             for index in 0..<frames {
-                let value = max(-1, min(1, channel[index]))
-                energy += value * value
+                let value = channel[index].isFinite ? max(-1, min(1, channel[index])) : 0
                 var sample = Int16(value * Float(Int16.max)).littleEndian
                 withUnsafeBytes(of: &sample) { pcm.append(contentsOf: $0) }
             }
-            let rms = frames > 0 ? sqrt(energy / Float(frames)) : 0
             self.lock.withLock {
                 if self.recording {
+                    guard self.bytes.count + pcm.count <= Int(self.sampleRate) * 2 * 120 else {
+                        self.durationExceeded = true
+                        return
+                    }
                     self.bytes.append(pcm)
-                    // Loudness is not a speech classifier. Preserve quiet input
-                    // for recognition instead of rejecting whispers at -50 dBFS.
-                    if rms > 0.0001 { self.speechFrames += frames }
                 }
             }
         }
         engine.prepare()
         do {
-            try engine.start()
             lock.withLock { recording = true }
+            try engine.start()
         } catch {
+            lock.withLock { recording = false; bytes.removeAll() }
             input.removeTap(onBus: 0)
             throw error
         }
     }
 
     func stop() async throws -> Data {
-        let result: (Data, UInt32, Int, Bool) = lock.withLock {
+        let result: (Data, UInt32, Bool, Bool) = lock.withLock {
             recording = false
-            return (bytes, sampleRate, speechFrames, deviceChanged)
+            let result = (bytes, sampleRate, durationExceeded, deviceChanged)
+            bytes.removeAll(keepingCapacity: false)
+            return result
         }
         engine.stop()
         engine.inputNode.removeTap(onBus: 0)
         if result.3 { throw DictationFailure.audioDeviceChanged }
-        if result.2 < Int(Double(result.1) * 0.08) { throw DictationFailure.noAudio }
+        if result.2 { throw DictationFailure.transcription("Dictation exceeded the 120-second capture limit. Please dictate a shorter passage.") }
+        guard Self.containsSignal(result.0) else { throw DictationFailure.noAudio }
         return Self.wavData(pcm: Self.normalizeQuietPCM(result.0), sampleRate: result.1)
     }
 
@@ -119,7 +124,11 @@ final class MicrophoneCapture: AudioCapturing, @unchecked Sendable {
         return output
     }
 
-    private static func wavData(pcm: Data, sampleRate: UInt32) -> Data {
+    static func containsSignal(_ pcm: Data) -> Bool {
+        pcm.count >= 2 && pcm.count.isMultiple(of: 2) && pcm.contains { $0 != 0 }
+    }
+
+    static func wavData(pcm: Data, sampleRate: UInt32) -> Data {
         var output = Data()
         func append<T>(_ value: T) { var little = value; withUnsafeBytes(of: &little) { output.append(contentsOf: $0) } }
         output.append("RIFF".data(using: .ascii)!)

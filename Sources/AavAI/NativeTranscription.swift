@@ -18,13 +18,7 @@ actor NativeTranscription: TranscriptionProvider {
         active?.task.cancel()
         let id = UUID()
         let task = Task {
-            let directory = FileManager.default.temporaryDirectory.appending(path: "aavai-native-\(UUID().uuidString)")
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false,
-                                                    attributes: [.posixPermissions: 0o700])
-            defer { try? FileManager.default.removeItem(at: directory) }
-            let file = directory.appending(path: "capture.wav")
-            try audio.write(to: file, options: .atomic)
-            let text = try await AppleFileRecognizer().transcribe(file: file, locale: locale, dictionary: dictionary)
+            let text = try await AppleFileRecognizer().transcribe(wav: audio, locale: locale, dictionary: dictionary)
             guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw DictationFailure.noAudio }
             return text
         }

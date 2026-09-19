@@ -84,14 +84,14 @@ test("accuracy fallback replaces a low-confidence transcript with a stronger can
   const calls = [];
   globalThis.fetch = async url => {
     calls.push(String(url));
-    if (String(url).startsWith("http://primary")) return Response.json({
+    if (String(url).startsWith("http://127.0.0.1:8080")) return Response.json({
       text: "Jane may earn more money by walking out.", segments: [{ avg_logprob: -0.27 }]
     });
     return Response.json({
       text: "Jane may earn more money by working hard.", segments: [{ avg_logprob: -0.08 }]
     });
   };
-  const provider = new LocalProvider({ whisperURL: "http://primary", whisperFallbackURL: "http://fallback" });
+  const provider = new LocalProvider({ whisperURL: "http://127.0.0.1:8080", whisperFallbackURL: "http://127.0.0.1:8081" });
   assert.equal(
     await provider.transcribe(new Uint8Array([1]), { dictionary: [] }),
     "Jane may earn more money by working hard."
@@ -107,7 +107,7 @@ test("accuracy fallback is skipped for a confident primary transcript", async t 
     calls++;
     return Response.json({ text: "This was easy for us.", segments: [{ avg_logprob: -0.08 }] });
   };
-  const provider = new LocalProvider({ whisperURL: "http://primary", whisperFallbackURL: "http://fallback" });
+  const provider = new LocalProvider({ whisperURL: "http://127.0.0.1:8080", whisperFallbackURL: "http://127.0.0.1:8081" });
   assert.equal(await provider.transcribe(new Uint8Array([1]), { dictionary: [] }), "This was easy for us.");
   assert.equal(calls, 1);
 });
@@ -116,12 +116,12 @@ test("accuracy fallback failure preserves the usable primary transcript", async 
   const originalFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = originalFetch; });
   globalThis.fetch = async url => {
-    if (String(url).startsWith("http://primary")) {
+    if (String(url).startsWith("http://127.0.0.1:8080")) {
       return Response.json({ text: "Quiet words", segments: [{ avg_logprob: -0.5 }] });
     }
     throw new Error("fallback unavailable");
   };
-  const provider = new LocalProvider({ whisperURL: "http://primary", whisperFallbackURL: "http://fallback" });
+  const provider = new LocalProvider({ whisperURL: "http://127.0.0.1:8080", whisperFallbackURL: "http://127.0.0.1:8081" });
   assert.equal(await provider.transcribe(new Uint8Array([1]), { dictionary: [] }), "Quiet words");
 });
 

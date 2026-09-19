@@ -45,10 +45,13 @@ export function createApp() {
       }
       throw new HttpError(404, "not found");
     } catch (error) {
-      const status = error instanceof HttpError ? error.status : 500;
+      const status = error instanceof HttpError ? error.status : error instanceof SyntaxError ? 400 : 500;
+      const message = ({ 400: "invalid request", 404: "not found", 413: "request too large",
+        422: "no speech detected", 429: "usage limit exceeded", 502: "local provider failed",
+        504: "local provider timed out" })[status] || "internal error";
       // Never log audio, transcript, context, or dictionary contents.
-      console.error(JSON.stringify({ level: "error", requestId, status, name: error.name, message: error.message }));
-      json(res, status, { error: error.message, requestId });
+      console.error(JSON.stringify({ level: "error", requestId, status }));
+      json(res, status, { error: message, requestId });
     }
   });
 }

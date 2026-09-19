@@ -80,12 +80,12 @@ final class MacFocusReader: FocusReading {
         let role = stringAttribute(kAXRoleAttribute, from: element) ?? ""
         let subrole = stringAttribute(kAXSubroleAttribute, from: element) ?? ""
         let secure = role == "AXSecureTextField" || subrole == "AXSecureTextField"
-        let value = (stringAttribute(kAXValueAttribute, from: element) ?? "").suffix(maximumContextLength)
+        let value = !secure && PrivacyPreferences.useContext ? boundedContext(from: element) : ""
         let context = FocusContext(
             bundleIdentifier: bundle,
             applicationName: app?.localizedName,
             category: Self.category(bundle: bundle),
-            nearbyText: secure ? "" : String(value),
+            nearbyText: value,
             isSecure: secure
         )
         return FocusSnapshot(context: context, element: element, processIdentifier: processIdentifier)
@@ -97,6 +97,25 @@ final class MacFocusReader: FocusReading {
             element: nil,
             processIdentifier: 0
         )
+    }
+
+    private func boundedContext(from element: AXUIElement) -> String {
+        var selectionRaw: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, "AXSelectedTextRange" as CFString, &selectionRaw) == .success,
+              let selectionRaw, CFGetTypeID(selectionRaw) == AXValueGetTypeID() else { return "" }
+        var selection = CFRange()
+        guard AXValueGetValue(selectionRaw as! AXValue, .cfRange, &selection), selection.location >= 0 else { return "" }
+        var countRaw: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, "AXNumberOfCharacters" as CFString, &countRaw) == .success,
+              let count = countRaw as? NSNumber else { return "" }
+        let total = max(0, count.intValue)
+        let start = max(0, min(selection.location, total) - maximumContextLength / 2)
+        var range = CFRange(location: start, length: min(maximumContextLength, total - start))
+        guard range.length > 0, let parameter = AXValueCreate(.cfRange, &range) else { return "" }
+        var raw: CFTypeRef?
+        guard AXUIElementCopyParameterizedAttributeValue(element, "AXStringForRange" as CFString, parameter, &raw) == .success,
+              let text = raw as? String else { return "" }
+        return String(decoding: text.utf16.prefix(maximumContextLength), as: UTF16.self)
     }
 
     private func stringAttribute(_ name: String, from element: AXUIElement) -> String? {
@@ -125,15 +144,15 @@ struct MacTextInserter: TextInserting {
             target.activate()
             try? await Task.sleep(for: .milliseconds(200))
         }
-        guard snapshot.processIdentifier != 0,
-              let currentApp = NSWorkspace.shared.frontmostApplication,
-              currentApp.processIdentifier == snapshot.processIdentifier else {
-            copy(text)
-            return .init(method: .clipboardOnly, succeeded: false, reason: "focusChanged", targetApplication: snapshot.context.applicationName)
+        if let failure = validateTarget(snapshot) {
+            return .init(method: .clipboardOnly, succeeded: false, reason: failure, targetApplication: snapshot.context.applicationName)
         }
         if let element = snapshot.element,
            AXUIElementSetAttributeValue(element, kAXSelectedTextAttribute as CFString, text as CFTypeRef) == .success {
             return .init(method: .accessibility, succeeded: true, reason: nil, targetApplication: snapshot.context.applicationName)
+        }
+        guard PrivacyPreferences.allowClipboard else {
+            return .init(method: .clipboardOnly, succeeded: false, reason: "clipboardDisabled", targetApplication: snapshot.context.applicationName)
         }
         let previousClipboard = captureClipboard()
         copy(text)
@@ -149,6 +168,24 @@ struct MacTextInserter: TextInserting {
         try? await Task.sleep(for: .milliseconds(250))
         restoreClipboard(previousClipboard, ifStillContaining: text)
         return .init(method: .clipboardPaste, succeeded: true, reason: nil, targetApplication: snapshot.context.applicationName)
+    }
+
+    private func validateTarget(_ snapshot: FocusSnapshot) -> String? {
+        guard let currentApp = NSWorkspace.shared.frontmostApplication,
+              currentApp.processIdentifier == snapshot.processIdentifier,
+              snapshot.processIdentifier != 0 else { return "focusChanged" }
+        let app = AXUIElementCreateApplication(snapshot.processIdentifier)
+        var raw: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, "AXFocusedUIElement" as CFString, &raw) == .success,
+              let raw, CFGetTypeID(raw) == AXUIElementGetTypeID() else { return "unverifiedFocus" }
+        let current = raw as! AXUIElement
+        var role: CFTypeRef?
+        var subrole: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(current, "AXRole" as CFString, &role) == .success else { return "unverifiedFocus" }
+        AXUIElementCopyAttributeValue(current, "AXSubrole" as CFString, &subrole)
+        if role as? String == "AXSecureTextField" || subrole as? String == "AXSecureTextField" { return "secureField" }
+        guard let original = snapshot.element, CFEqual(original, current) else { return "focusChanged" }
+        return nil
     }
 
     private func copy(_ text: String) {

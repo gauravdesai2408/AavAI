@@ -8,6 +8,7 @@ final class DictationCoordinator: ObservableObject {
     @Published private(set) var rawTranscript = ""
     @Published private(set) var polishedTranscript = ""
     @Published private(set) var isStarting = false
+    @Published private(set) var storageError: String?
     private var previewOnly = false
     private var isCancelling = false
     private var sessionID = UUID()
@@ -20,18 +21,31 @@ final class DictationCoordinator: ObservableObject {
     private let historyStore: HistoryStoring
     private let dictionary: DictionaryStore
     private let isServiceReady: @MainActor () -> Bool
+    private let shouldSaveHistory: @MainActor () -> Bool
+    private let retentionDays: @MainActor () -> Int
     private var snapshot: FocusSnapshot?
     private var processingStartedAt: ContinuousClock.Instant?
 
     init(audio: AudioCapturing, transcription: TranscriptionProvider, cleanup: CleanupProviding,
          focus: FocusReading, inserter: TextInserting, history: HistoryStoring, dictionary: DictionaryStore,
-         isServiceReady: @escaping @MainActor () -> Bool = { true }) {
+         isServiceReady: @escaping @MainActor () -> Bool = { true },
+         shouldSaveHistory: @escaping @MainActor () -> Bool = { true },
+         retentionDays: @escaping @MainActor () -> Int = { 0 }) {
         self.audio = audio; self.transcription = transcription; self.cleanup = cleanup
         self.focus = focus; self.inserter = inserter; self.historyStore = history; self.dictionary = dictionary
         self.isServiceReady = isServiceReady
+        self.shouldSaveHistory = shouldSaveHistory
+        self.retentionDays = retentionDays
     }
 
-    func loadHistory() async { history = await historyStore.list() }
+    func loadHistory() async {
+        do {
+            try await historyStore.validate()
+            try await enforceRetention()
+            history = await historyStore.list(); storageError = nil
+        }
+        catch { storageError = "History could not be loaded safely. Existing data has not been changed." }
+    }
 
     func start(previewOnly: Bool = false) async {
         guard !isStarting, !isCancelling else { return }
@@ -93,8 +107,12 @@ final class DictationCoordinator: ObservableObject {
             } ?? 0
             let entry = TranscriptEntry(id: UUID(), createdAt: .now, rawText: raw, cleanedText: result.text,
                                         applicationName: snapshot.context.applicationName, latencyMilliseconds: duration)
-            try await historyStore.append(entry)
-            history = await historyStore.list()
+            if shouldSaveHistory() { do {
+                try await historyStore.append(entry)
+                try await enforceRetention()
+                history = await historyStore.list()
+                storageError = nil
+            } catch { storageError = "The transcript could not be saved. You can still copy or insert it." } }
             guard sessionID == currentSession else { return }
             if !showOnly {
                 state = .inserting
@@ -128,8 +146,30 @@ final class DictationCoordinator: ObservableObject {
         await transcription.cancel()
     }
     func reset() { sessionID = UUID(); state = .idle; snapshot = nil; processingStartedAt = nil }
-    func deleteHistory(id: UUID) async { try? await historyStore.delete(id: id); history = await historyStore.list() }
-    func deleteAllHistory() async { try? await historyStore.deleteAll(); history = [] }
+    func deleteHistory(id: UUID) async {
+        do { try await historyStore.delete(id: id); history = await historyStore.list(); storageError = nil }
+        catch { storageError = "Deletion failed. The saved transcript has not been confirmed deleted." }
+    }
+    func deleteAllHistory() async {
+        do { try await historyStore.deleteAll(); history = await historyStore.list(); storageError = nil }
+        catch { storageError = "Deletion failed. Saved history has not been confirmed deleted." }
+    }
+
+    private func enforceRetention() async throws {
+        let days = retentionDays()
+        guard [7, 30, 90].contains(days) else { return }
+        try await historyStore.delete(before: Date.now.addingTimeInterval(-Double(days) * 86_400))
+    }
+
+    func exportData(dictionary: [String]) async throws -> Data {
+        try await historyStore.validate()
+        try await enforceRetention()
+        let entries = await historyStore.list()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        return try encoder.encode(LocalDataExport(version: 1, exportedAt: .now, history: entries, dictionary: dictionary))
+    }
 
     var recoverableText: String? {
         if case .failed(_, let text) = state { return text }
@@ -169,3 +209,10 @@ final class DictationCoordinator: ObservableObject {
 }
 
 private struct RecoverableFailure: Error { let failure: DictationFailure; let text: String }
+
+private struct LocalDataExport: Encodable {
+    let version: Int
+    let exportedAt: Date
+    let history: [TranscriptEntry]
+    let dictionary: [String]
+}

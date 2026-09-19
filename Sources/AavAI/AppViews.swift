@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct RootView: View {
     @EnvironmentObject private var coordinator: DictationCoordinator
@@ -15,6 +16,13 @@ struct RootView: View {
     @State private var confirmResetLocalData = false
     @State private var selectedTranscript: TranscriptEntry?
     @State private var showDictation = false
+    @AppStorage("privacy.saveHistory") private var saveHistory = false
+    @AppStorage("privacy.useContext") private var useContext = false
+    @AppStorage("privacy.allowClipboard") private var allowClipboard = true
+    @AppStorage("privacy.retentionDays") private var retentionDays = 0
+    @State private var pendingRetentionDays = 0
+    @State private var confirmRetention = false
+    @State private var exportMessage: String?
 
     var body: some View {
         NavigationSplitView {
@@ -31,6 +39,24 @@ struct RootView: View {
         }
         .frame(minWidth: 820, minHeight: 560)
         .task { await coordinator.loadHistory() }
+        .task { await dictionary.load() }
+        .task {
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(60)) } catch { break }
+                await coordinator.loadHistory()
+            }
+        }
+        .confirmationDialog("Permanently delete history older than \(pendingRetentionDays) days?", isPresented: $confirmRetention, titleVisibility: .visible) {
+            Button("Apply retention and delete older entries", role: .destructive) {
+                retentionDays = pendingRetentionDays
+                Task { await coordinator.loadHistory() }
+            }
+        } message: { Text("Existing entries beyond this limit will be deleted. While AavAI is open, expiry is checked periodically; it is also checked when history loads. External backups are not deleted.") }
+        .safeAreaInset(edge: .bottom) {
+            if let error = coordinator.storageError ?? dictionary.errorMessage {
+                Text(error).font(.callout).foregroundStyle(.red).padding()
+            }
+        }
         .sheet(item: $selectedTranscript) { entry in
             TranscriptDetailView(entry: entry)
         }
@@ -138,6 +164,10 @@ struct RootView: View {
             Text("Dictionary").font(.largeTitle.bold())
             Text("Teach AavAI names, products, and specialist vocabulary.").foregroundStyle(.secondary)
             HStack { TextField("Add a word or phrase", text: $newTerm); Button("Add") { dictionary.add(newTerm); newTerm = "" } }
+                .disabled(!dictionary.isReady)
+            if !dictionary.isReady {
+                Button("Unlock dictionary") { Task { await dictionary.load() } }
+            }
             List { ForEach(dictionary.terms, id: \.self) { Text($0) }.onDelete(perform: dictionary.remove) }
         }.padding(28)
     }
@@ -160,6 +190,32 @@ struct RootView: View {
                 if let error = settings.launchAtLoginError { Text(error).foregroundStyle(.red).font(.caption) }
             }
             Section("Privacy") {
+                Toggle("Save future transcripts in encrypted history", isOn: $saveHistory)
+                Picker("History retention", selection: Binding(
+                    get: { retentionDays },
+                    set: { days in
+                        if days == 0 { retentionDays = 0 }
+                        else { pendingRetentionDays = days; confirmRetention = true }
+                    }
+                )) {
+                    Text("Until manually deleted").tag(0)
+                    Text("7 days").tag(7)
+                    Text("30 days").tag(30)
+                    Text("90 days").tag(90)
+                }
+                Button("Export local history and dictionary…") { Task { await exportLocalData() } }
+                    .disabled(!dictionary.isReady)
+                Text("Exports are readable JSON, not encrypted. Choose a private destination; cloud-synced folders may upload your export.")
+                    .font(.caption).foregroundStyle(.secondary)
+                if let exportMessage { Text(exportMessage).font(.caption) }
+                Text("Off by default. Existing history is kept until you delete it. Turning this off does not clear the current transcript from the screen.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Toggle("Use nearby text as spelling context", isOn: $useContext)
+                Text("Optional: reads at most 800 UTF-16 characters near the cursor in supported fields. Secure fields are excluded.")
+                    .font(.caption).foregroundStyle(.secondary)
+                Toggle("Allow automatic clipboard insertion fallback", isOn: $allowClipboard)
+                Text("Other apps and Universal Clipboard may observe copied text. Turning this off leaves text in AavAI if direct insertion fails; explicit Copy still uses the clipboard.")
+                    .font(.caption).foregroundStyle(.secondary)
                 Text("Audio and transcripts are processed locally and are not uploaded by local mode.")
                 Button("Delete local history", role: .destructive) { confirmDeleteAll = true }
             }
@@ -200,6 +256,18 @@ struct RootView: View {
                 Button("Delete all history", role: .destructive) { Task { await coordinator.deleteAllHistory() } }
                 Button("Cancel", role: .cancel) {}
             } message: { Text("This cannot be undone.") }
+    }
+
+    private func exportLocalData() async {
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.json]
+        panel.nameFieldStringValue = "AavAI-local-data.json"
+        guard panel.runModal() == .OK, let destination = panel.url else { return }
+        do {
+            let data = try await coordinator.exportData(dictionary: dictionary.terms)
+            try data.write(to: destination, options: [.atomic, .completeFileProtection])
+            exportMessage = "Local data exported. Protect this readable file."
+        } catch { exportMessage = "Export failed. Saved data has not been changed." }
     }
 
     private var accountView: some View {

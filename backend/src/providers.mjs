@@ -68,42 +68,6 @@ export class DevelopmentProvider {
   }
 }
 
-export class OpenAIProvider {
-  constructor(apiKey = process.env.OPENAI_API_KEY) {
-    if (!apiKey) throw new Error("OPENAI_API_KEY is required when AAVAI_PROVIDER=openai");
-    this.apiKey = apiKey;
-  }
-  async transcribe(audio, { locale, dictionary }) {
-    const form = new FormData();
-    form.set("file", new Blob([audio], { type: "audio/wav" }), "dictation.wav");
-    form.set("model", process.env.AAVAI_TRANSCRIPTION_MODEL || "gpt-4o-mini-transcribe");
-    form.set("language", locale || "en");
-    form.set("prompt", `Expected vocabulary: ${dictionary.join(", ")}`.slice(0, 1_500));
-    const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-      method: "POST", headers: { Authorization: `Bearer ${this.apiKey}` }, body: form
-    });
-    if (!response.ok) throw new HttpError(502, "transcription provider failed");
-    return (await response.json()).text;
-  }
-  async cleanup(request) {
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${this.apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: process.env.AAVAI_CLEANUP_MODEL || "gpt-4.1-mini",
-        input: [
-          { role: "system", content: "Polish dictated text. Preserve meaning, names, numbers, URLs, and technical terms. Remove fillers and false starts. Resolve explicit self-corrections. Add appropriate punctuation and structure. Return only the polished text." },
-          { role: "user", content: JSON.stringify({ transcript: request.transcript, category: request.context.category, nearbyText: request.context.nearbyText, dictionary: request.dictionary }) }
-        ]
-      })
-    });
-    if (!response.ok) throw new HttpError(502, "cleanup provider failed");
-    const payload = await response.json();
-    const text = payload.output_text || payload.output?.flatMap(item => item.content ?? []).find(item => item.type === "output_text")?.text;
-    if (!text) throw new HttpError(502, "cleanup provider returned no text");
-    return { text, confidence: 0.9, warnings: [] };
-  }
-}
 
 export class LocalProvider {
   constructor({
@@ -114,6 +78,7 @@ export class LocalProvider {
     fallbackLogprobThreshold = Number(process.env.AAVAI_WHISPER_FALLBACK_LOGPROB || -0.2),
     requestTimeoutMilliseconds = Number(process.env.AAVAI_PROVIDER_TIMEOUT_MS || 30_000)
   } = {}) {
+    for (const value of [whisperURL, ollamaURL, whisperFallbackURL].filter(Boolean)) requireLoopback(value);
     this.whisperURL = whisperURL;
     this.whisperFallbackURL = whisperFallbackURL;
     this.ollamaURL = ollamaURL;
@@ -124,11 +89,11 @@ export class LocalProvider {
 
   async health() {
     const [whisper, fallbackWhisper, ollama] = await Promise.all([
-      fetch(`${this.whisperURL}/health`).then(response => response.ok).catch(() => false),
+      this.fetchWithTimeout(`${this.whisperURL}/health`, {}, "local Whisper").then(response => response.ok).catch(() => false),
       this.whisperFallbackURL
-        ? fetch(`${this.whisperFallbackURL}/health`).then(response => response.ok).catch(() => false)
+        ? this.fetchWithTimeout(`${this.whisperFallbackURL}/health`, {}, "local Whisper").then(response => response.ok).catch(() => false)
         : Promise.resolve(null),
-      fetch(`${this.ollamaURL}/api/tags`).then(response => response.ok).catch(() => false)
+      this.fetchWithTimeout(`${this.ollamaURL}/api/tags`, {}, "local Ollama").then(response => response.ok).catch(() => false)
     ]);
     return { provider: "local", whisper, fallbackWhisper, ollama, model: this.ollamaModel };
   }
@@ -202,9 +167,10 @@ export class LocalProvider {
   }
 
   async fetchWithTimeout(url, options, service) {
+    requireLoopback(url);
     const signal = AbortSignal.timeout(this.requestTimeoutMilliseconds);
     try {
-      return await fetch(url, { ...options, signal });
+      return await fetch(url, { ...options, signal, redirect: "error" });
     } catch (error) {
       if (signal.aborted) throw new HttpError(504, `${service} timed out`);
       throw error;
@@ -213,7 +179,18 @@ export class LocalProvider {
 }
 
 export function createProvider() {
-  if (process.env.AAVAI_PROVIDER === "openai") return new OpenAIProvider();
+  if (process.env.AAVAI_PROVIDER && !["local", "development"].includes(process.env.AAVAI_PROVIDER)) {
+    throw new Error("Cloud providers are disabled in this offline build");
+  }
   if (process.env.AAVAI_PROVIDER === "local") return new LocalProvider();
   return new DevelopmentProvider();
+}
+
+function requireLoopback(value) {
+  let url;
+  try { url = new URL(value); } catch { throw new Error("Only loopback inference endpoints are allowed"); }
+  if (!["http:", "https:"].includes(url.protocol) || !["127.0.0.1", "localhost", "[::1]"].includes(url.hostname)
+      || url.username || url.password || url.search || url.hash) {
+    throw new Error("Only loopback inference endpoints are allowed");
+  }
 }

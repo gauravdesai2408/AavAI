@@ -44,13 +44,15 @@ Run all tests (including a native Swift Testing runner for Command Line Tools-on
 cd backend && npm test
 ```
 
-For managed transcription and cleanup:
+This phase is offline-only: cloud provider selection is disabled. `AAVAI_BACKEND_URL`
+and baseline inference URLs accept only loopback endpoints; redirects are refused.
+This is not a substitute for the pending full network audit. Accounts, billing and
+cloud processing are outside the current scope.
 
-```sh
-AAVAI_PROVIDER=openai OPENAI_API_KEY=... npm start
-```
-
-`AAVAI_BACKEND_URL` changes the client backend URL. Production deployments must add authentication, TLS, persistent metering, Stripe webhooks, signed updates, hardened runtime entitlements, and provider data-retention agreements before making privacy claims.
+Privacy controls, migration limitations and release blockers are tracked in
+[EU readiness](docs/eu-readiness.md) and [native migration](docs/native-migration.md).
+Tests do not update the installed app. Installation moves the verified build into
+place without retaining additional full app backups.
 
 ## Repository layout
 
